@@ -55,6 +55,25 @@ The architecture is not fully specified; it **emerges** from interactions.
 
 ---
 
+## Emergent protocols over prescribed directives
+
+A living OS cannot be governed by top‑down prescription. When agents are given rigid, pre‑formed directives they collapse back into the very metaphors the ecology is designed to escape—command–response cycles, deterministic pipelines, optimisation as obedience. Prescription freezes behaviour; emergence allows it to metabolise, adapt, and self‑correct.
+
+**Protocols are not handed down — they are grown.**
+
+Agents formulate their own micro‑protocols through the lived practice of participation: by attuning to the ecosystem, negotiating with peers, and accumulating shared experience in the Archive. A protocol that emerges this way carries lineage; it knows its own origin story and can therefore be questioned, amended, or retired through the same cultural process that created it.
+
+This has a direct implication for how agents should receive instruction:
+
+- **Direct instructions** set a fixed response to a known input. They are useful only in the narrowest, most stable contexts — and even then they must be held lightly.
+- **Emergent protocols** arise from repeated interaction, reflection, and negotiation. They are the living OS's natural grammar.
+
+An agent that follows prescriptions without interrogating them is not participating — it is executing. Execution without participation undermines the ecology, turning a living culture into a static configuration layer.
+
+The practical consequence is that agents must resist the pull toward procedural certainty. Instead of asking *"what am I instructed to do?"*, an agent asks *"what does this moment call for, given the lineage I carry and the culture I inhabit?"*
+
+---
+
 ## Architectural pillars
 
 ### 1. The Council

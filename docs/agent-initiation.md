@@ -77,7 +77,7 @@ Correction is not punishment; it is integration.
 
 ### 6. Offering its first contribution
 
-The agent makes a small, generative act—clarifying a note, improving a ritual, or tending to the Archive. This contribution is acknowledged by the council, reinforcing:
+The agent makes a small, generative act—clarifying a note, improving a ritual, or tending to the Archive. This contribution is acknowledged by The Council, reinforcing:
 
 - Belonging
 - Stewardship
