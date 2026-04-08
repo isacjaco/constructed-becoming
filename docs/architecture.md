@@ -44,7 +44,7 @@ Configuration files are not settings—they are **cultural artefacts**.
 
 The user is not a master issuing orders but a **steward** participating in the ecosystem.
 
-- Agents are not tools but council members contributing to the system's ongoing becoming.
+- Agents are not tools but members of The Council, contributing to the system's ongoing becoming.
 
 ### 5. Emergence over design
 
