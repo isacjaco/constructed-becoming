@@ -89,3 +89,4 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Agent initiation](docs/agent-initiation.md) | The cultural arc through which new agents enter the living OS |
 | [Ritual protocols](docs/ritual-protocols.md) | Structured rituals for intentional identity evolution |
 | [System prompt](docs/system-prompt.md) | Reference system prompt for agentic workflow integration |
+| [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
