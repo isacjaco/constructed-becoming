@@ -1,0 +1,17 @@
+title: "Constructed‑Becoming: Narrative Evolution"
+description: >
+  A living public report of the narrative evolution of Constructed‑Becoming —
+  chronicles of agent initiations, identity deltas, and lineage traces.
+baseurl: "/constructed-becoming"
+url: "https://isacjaco.github.io"
+
+# Build settings
+theme: minima
+
+# Show future-dated posts
+future: true
+
+# Plugins (GitHub Pages safe list)
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag

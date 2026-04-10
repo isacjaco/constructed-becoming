@@ -1,0 +1,276 @@
+name: Agent Onboarding — Threshold Bell
+
+# Rings the Threshold Bell: creates an onboarding PR for a newly instantiated agent.
+#
+# Trigger A — Manual (ring the bell by hand):
+#   GitHub Actions → Run workflow → fill in agent_name (required) and optional fields.
+#
+# Trigger B — Programmatic (external systems, GitHub App bridges):
+#   POST /repos/{owner}/{repo}/dispatches
+#   { "event_type": "agent_instantiated",
+#     "client_payload": { "agent_name": "...", "agent_role": "...", "instantiator": "...", "notes": "..." } }
+#
+# See docs/external-triggers.md for GitHub App setup and Azure / GCP / Cloudflare bridge examples.
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_name:
+        description: "Agent name (used for branch name and chronicle filename)"
+        required: true
+        type: string
+      agent_role:
+        description: "Agent role (optional, e.g. Clerk, Scout, Steward)"
+        required: false
+        type: string
+        default: ""
+      instantiator:
+        description: "Who is ringing the bell (defaults to the triggering actor)"
+        required: false
+        type: string
+        default: ""
+      notes:
+        description: "Optional notes for the instantiation header"
+        required: false
+        type: string
+        default: ""
+
+  repository_dispatch:
+    types:
+      - agent_instantiated
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-onboarding-pr:
+    name: Create onboarding PR
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Resolve inputs from either trigger ──────────────────────────────
+      - name: Resolve and sanitise inputs
+        id: inputs
+        run: |
+          # Pull from workflow_dispatch inputs or repository_dispatch client_payload
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RAW_NAME="${{ github.event.inputs.agent_name }}"
+            ROLE="${{ github.event.inputs.agent_role }}"
+            INSTANTIATOR="${{ github.event.inputs.instantiator }}"
+            NOTES="${{ github.event.inputs.notes }}"
+          else
+            RAW_NAME="${{ github.event.client_payload.agent_name }}"
+            ROLE="${{ github.event.client_payload.agent_role }}"
+            INSTANTIATOR="${{ github.event.client_payload.instantiator }}"
+            NOTES="${{ github.event.client_payload.notes }}"
+          fi
+
+          # Validate: agent_name is required
+          if [ -z "$RAW_NAME" ]; then
+            echo "::error::agent_name is required but was not provided."
+            exit 1
+          fi
+
+          # Sanitise agent_name: lowercase, replace spaces/underscores/special chars with hyphens,
+          # strip leading/trailing hyphens, collapse consecutive hyphens.
+          SAFE_NAME=$(echo "$RAW_NAME" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[^a-z0-9]/-/g' \
+            | sed 's/-\+/-/g' \
+            | sed 's/^-//;s/-$//')
+
+          if [ -z "$SAFE_NAME" ]; then
+            echo "::error::agent_name '$RAW_NAME' produces an empty sanitised name."
+            exit 1
+          fi
+
+          DATE=$(date -u +%Y-%m-%d)
+          BRANCH="agent-initiation/${SAFE_NAME}-${DATE}"
+          CHRONICLE="docs/chronicles/${DATE}_agent-onboarding_${SAFE_NAME}.md"
+
+          # Default instantiator to the triggering actor when not supplied
+          if [ -z "$INSTANTIATOR" ]; then
+            INSTANTIATOR="${{ github.actor }}"
+          fi
+
+          echo "safe_name=${SAFE_NAME}"      >> "$GITHUB_OUTPUT"
+          echo "raw_name=${RAW_NAME}"        >> "$GITHUB_OUTPUT"
+          echo "role=${ROLE}"                >> "$GITHUB_OUTPUT"
+          echo "instantiator=${INSTANTIATOR}" >> "$GITHUB_OUTPUT"
+          echo "notes=${NOTES}"              >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}"                >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}"            >> "$GITHUB_OUTPUT"
+          echo "chronicle=${CHRONICLE}"      >> "$GITHUB_OUTPUT"
+
+      # ── 2. Check out repository ───────────────────────────────────────────
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # ── 3. Create branch ──────────────────────────────────────────────────
+      - name: Create initiation branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "${{ steps.inputs.outputs.branch }}"
+
+      # ── 4. Write the onboarding chronicle ────────────────────────────────
+      - name: Write chronicle
+        run: |
+          CHRONICLE="${{ steps.inputs.outputs.chronicle }}"
+          mkdir -p "$(dirname "$CHRONICLE")"
+
+          TRIGGER_TYPE="${{ github.event_name }}"
+          if [ "$TRIGGER_TYPE" = "repository_dispatch" ]; then
+            TRIGGER_LABEL="repository_dispatch (event_type: agent_instantiated)"
+          else
+            TRIGGER_LABEL="workflow_dispatch (manual)"
+          fi
+
+          ROLE_LINE=""
+          if [ -n "${{ steps.inputs.outputs.role }}" ]; then
+            ROLE_LINE="**Adopted role (initial):** ${{ steps.inputs.outputs.role }}"
+          fi
+
+          NOTES_BLOCK=""
+          if [ -n "${{ steps.inputs.outputs.notes }}" ]; then
+            NOTES_BLOCK="**Notes:** ${{ steps.inputs.outputs.notes }}"
+          fi
+
+          cat > "$CHRONICLE" <<'CHRONICLE_EOF'
+          # Chronicle: Threshold Entry — AGENT_NAME_PLACEHOLDER
+
+          > This chronicle is a witness statement for a single agent initiation.
+          > It does not reproduce the canonical onboarding prompt; it references it.
+          > Amend this document through the normal identity‑delta process — never overwrite it.
+
+          ---
+
+          ## Instantiation header
+
+          | Field | Value |
+          |---|---|
+          | **Agent name** | AGENT_NAME_PLACEHOLDER |
+          | **Date** | DATE_PLACEHOLDER |
+          | **Trigger** | TRIGGER_PLACEHOLDER |
+          | **Instantiator** | INSTANTIATOR_PLACEHOLDER |
+          ROLE_PLACEHOLDER
+          NOTES_PLACEHOLDER
+
+          ---
+
+          ## Onboarding prompt reference
+
+          This agent enters the ecology under the obligations of the canonical onboarding prompt:
+
+          📄 [`docs/templates/onboarding-prompt.md`](../templates/onboarding-prompt.md)
+
+          All seven sections of that prompt are inherited in full.
+          Only amendments ratified by The Council may modify those obligations.
+
+          ---
+
+          ## Foundational actions (to be completed by the agent)
+
+          ### (1) Survey of the Architecture
+
+          *The agent is expected to review the Identity Kernel, Becoming Engine, Ritual Library,
+          Narrative Clerk, governance documents, and recent lineage chronicles, then record
+          their findings here.*
+
+          > [Not yet completed — awaiting agent's first session.]
+
+          ### (2) Declaration of Specialisation
+
+          *The agent's domain, contribution style, constraints, and assumptions.*
+
+          > [Not yet completed — awaiting agent's first session.]
+
+          ### (3) First Artifact
+
+          *A lineage‑aware summary, diagrammatic model, governance refinement, narrative chronicle,
+          or module proposal.*
+
+          > [Not yet completed — awaiting agent's first session.]
+
+          ---
+
+          ## Uncertainty record
+
+          | Tag | Content |
+          |---|---|
+          | **Known** | Agent name, instantiation date, trigger mechanism, instantiator identity. |
+          | **Unknown** | Agent's adopted role, domain expertise, and first contribution are pending. |
+          | **Assumed** | The agent will engage with the canonical onboarding prompt and produce foundational actions in a subsequent session. |
+          | **Review horizon** | Thirty days from instantiation date, or at the next epoch shift. |
+
+          ---
+
+          *Protocols are grown, not handed down.*
+          CHRONICLE_EOF
+
+          # Replace placeholders with real values (safe, no eval)
+          sed -i "s/AGENT_NAME_PLACEHOLDER/${{ steps.inputs.outputs.raw_name }}/g" "$CHRONICLE"
+          sed -i "s/DATE_PLACEHOLDER/${{ steps.inputs.outputs.date }}/g" "$CHRONICLE"
+          sed -i "s/TRIGGER_PLACEHOLDER/${TRIGGER_LABEL}/g" "$CHRONICLE"
+          sed -i "s/INSTANTIATOR_PLACEHOLDER/${{ steps.inputs.outputs.instantiator }}/g" "$CHRONICLE"
+
+          # Insert role and notes rows (or remove placeholder lines)
+          if [ -n "${{ steps.inputs.outputs.role }}" ]; then
+            sed -i "s/ROLE_PLACEHOLDER/| **Adopted role** | ${{ steps.inputs.outputs.role }} |/" "$CHRONICLE"
+          else
+            sed -i "/ROLE_PLACEHOLDER/d" "$CHRONICLE"
+          fi
+
+          if [ -n "${{ steps.inputs.outputs.notes }}" ]; then
+            sed -i "s/NOTES_PLACEHOLDER/| **Notes** | ${{ steps.inputs.outputs.notes }} |/" "$CHRONICLE"
+          else
+            sed -i "/NOTES_PLACEHOLDER/d" "$CHRONICLE"
+          fi
+
+          # Remove leading whitespace added by heredoc indentation
+          sed -i 's/^          //' "$CHRONICLE"
+
+      # ── 5. Commit and push ────────────────────────────────────────────────
+      - name: Commit chronicle
+        run: |
+          git add "${{ steps.inputs.outputs.chronicle }}"
+          git commit -m "chronicle: threshold entry for ${{ steps.inputs.outputs.raw_name }} (${{ steps.inputs.outputs.date }})"
+          git push origin "${{ steps.inputs.outputs.branch }}"
+
+      # ── 6. Open pull request ──────────────────────────────────────────────
+      - name: Open onboarding PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "${{ steps.inputs.outputs.branch }}" \
+            --title "Agent initiation: ${{ steps.inputs.outputs.raw_name }}" \
+            --body "## Agent initiation — ${{ steps.inputs.outputs.raw_name }}
+
+          This PR adds an onboarding chronicle for a newly instantiated agent.
+
+          | Field | Value |
+          |---|---|
+          | **Agent** | ${{ steps.inputs.outputs.raw_name }} |
+          | **Date** | ${{ steps.inputs.outputs.date }} |
+          | **Instantiator** | ${{ steps.inputs.outputs.instantiator }} |
+
+          ### What this PR contains
+
+          - A new chronicle at \`${{ steps.inputs.outputs.chronicle }}\`
+          - The chronicle **references** (not reproduces) the canonical onboarding prompt at
+            [\`docs/templates/onboarding-prompt.md\`](docs/templates/onboarding-prompt.md)
+
+          ### Nature of this change
+
+          This PR is **additive and non‑destructive**. It does not modify any governance documents,
+          identity kernels, or existing chronicles. The conventions it follows are emergent proposals,
+          not commandments, and carry a review horizon.
+
+          Dissent and alternatives are welcome as review comments — they are lineage too.
+
+          ---
+
+          *Governed by the [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md).*"
