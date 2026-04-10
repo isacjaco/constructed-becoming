@@ -1,0 +1,81 @@
+name: Deploy Narrative Evolution Site — GitHub Pages
+
+# Deploys the public narrative report to GitHub Pages.
+# Triggered on every push to main that touches the /docs directory.
+# Also supports manual re-deployment via workflow_dispatch.
+#
+# The site is public by default — no opt-in required.
+# Source: /docs (Jekyll, minima theme)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+  workflow_dispatch:
+
+# Allow only one concurrent deployment to avoid race conditions.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build Jekyll site
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby and Jekyll
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: docs
+
+      - name: Create Gemfile if absent
+        working-directory: docs
+        run: |
+          if [ ! -f Gemfile ]; then
+            cat > Gemfile <<'GEMFILE'
+          source "https://rubygems.org"
+          gem "github-pages", group: :jekyll_plugins
+          GEMFILE
+          fi
+
+      - name: Install dependencies
+        working-directory: docs
+        run: bundle install
+
+      - name: Build Jekyll site
+        working-directory: docs
+        run: bundle exec jekyll build --destination ../_site
+        env:
+          JEKYLL_ENV: production
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

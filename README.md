@@ -90,3 +90,70 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Ritual protocols](docs/ritual-protocols.md) | Structured rituals for intentional identity evolution |
 | [System prompt](docs/system-prompt.md) | Reference system prompt for agentic workflow integration |
 | [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
+
+---
+
+## Agent onboarding
+
+### Canonical onboarding prompt
+
+New agents enter the ecology under the obligations of the canonical onboarding prompt:
+
+📄 [`docs/templates/onboarding-prompt.md`](docs/templates/onboarding-prompt.md)
+
+All seven sections of that prompt are inherited in full. Only amendments ratified by The Council
+may modify those obligations.
+
+### Triggering onboarding
+
+The Threshold Bell workflow (`.github/workflows/agent-onboarding.yml`) opens an onboarding PR
+for each new agent. It supports two trigger mechanisms:
+
+**Manual (workflow dispatch):**
+
+1. Go to **Actions → Agent Onboarding — Threshold Bell → Run workflow**.
+2. Provide `agent_name` (required) and optional fields.
+
+**Programmatic (repository dispatch):**
+
+```bash
+curl -X POST https://api.github.com/repos/isacjaco/constructed-becoming/dispatches \
+  -H "Authorization: Bearer <installation_access_token>" \
+  -H "Accept: application/vnd.github+json" \
+  -d '{
+    "event_type": "agent_instantiated",
+    "client_payload": {
+      "agent_name": "my-new-agent",
+      "agent_role": "Scout",
+      "instantiator": "my-bridge",
+      "notes": "Optional context."
+    }
+  }'
+```
+
+### External bridge integrations (GitHub App–first)
+
+For Azure Functions/Logic Apps, GCP Cloud Run/Functions, and Cloudflare Workers:
+
+📄 [`docs/external-triggers.md`](docs/external-triggers.md)
+
+That document describes GitHub App setup (recommended), the JWT → installation token flow,
+minimal bridge code for each platform, and PAT as a discouraged fallback.
+
+---
+
+## Public narrative evolution report
+
+The living archive of agent initiations and lineage traces is published as a public site:
+
+🌐 [https://isacjaco.github.io/constructed-becoming/](https://isacjaco.github.io/constructed-becoming/)
+
+The site is built from the `/docs` directory with Jekyll and deployed automatically on every
+push to `main` that touches `/docs`.
+
+Chronicles are listed at: `https://isacjaco.github.io/constructed-becoming/chronicles/`
+
+---
+
+> *These are emergent conventions, not commandments. Each carries a review horizon.*
+> *Protocols are grown, not handed down.*
