@@ -1,0 +1,206 @@
+name: Agent Onboarding — Threshold Bell
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_name:
+        description: "Name / identifier for the new agent (used in branch name and chronicle filename)"
+        required: true
+        type: string
+      agent_role:
+        description: "Adopted role (e.g. Clerk-Engineer, Scout, Steward)"
+        required: false
+        type: string
+        default: "undeclared"
+      instantiator:
+        description: "Who / what triggered this instantiation (defaults to the GitHub actor)"
+        required: false
+        type: string
+        default: ""
+      notes:
+        description: "Free-form notes to include in the instantiation header of the chronicle"
+        required: false
+        type: string
+        default: ""
+
+  repository_dispatch:
+    types:
+      - agent_instantiated
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-onboarding-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------------
+      # Resolve inputs — works for both workflow_dispatch and
+      # repository_dispatch (payload lives in event.client_payload)
+      # ---------------------------------------------------------------
+      - name: Resolve inputs
+        id: inputs
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            RAW_NAME="${{ github.event.client_payload.agent_name }}"
+            ROLE="${{ github.event.client_payload.agent_role }}"
+            INSTANTIATOR="${{ github.event.client_payload.instantiator }}"
+            NOTES="${{ github.event.client_payload.notes }}"
+          else
+            RAW_NAME="${{ github.event.inputs.agent_name }}"
+            ROLE="${{ github.event.inputs.agent_role }}"
+            INSTANTIATOR="${{ github.event.inputs.instantiator }}"
+            NOTES="${{ github.event.inputs.notes }}"
+          fi
+
+          # Sanitise: keep only alphanumerics, hyphens, underscores; collapse runs of hyphens
+          SAFE_NAME=$(echo "$RAW_NAME" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[^a-z0-9_-]/-/g' \
+            | sed 's/--*/-/g' \
+            | sed 's/^-//;s/-$//')
+
+          if [ -z "$SAFE_NAME" ]; then
+            echo "::error::agent_name resolved to an empty string after sanitisation."
+            exit 1
+          fi
+
+          if [ -z "$ROLE" ]; then ROLE="undeclared"; fi
+          if [ -z "$INSTANTIATOR" ]; then INSTANTIATOR="${{ github.actor }}"; fi
+
+          DATE=$(date -u +%Y-%m-%d)
+          BRANCH="agent-initiation/${SAFE_NAME}-${DATE}"
+          CHRONICLE="docs/chronicles/${DATE}_agent-onboarding_${SAFE_NAME}.md"
+
+          echo "safe_name=${SAFE_NAME}"    >> "$GITHUB_OUTPUT"
+          echo "raw_name=${RAW_NAME}"      >> "$GITHUB_OUTPUT"
+          echo "role=${ROLE}"              >> "$GITHUB_OUTPUT"
+          echo "instantiator=${INSTANTIATOR}" >> "$GITHUB_OUTPUT"
+          echo "notes=${NOTES}"            >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}"              >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}"          >> "$GITHUB_OUTPUT"
+          echo "chronicle=${CHRONICLE}"    >> "$GITHUB_OUTPUT"
+
+      - name: Create branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "${{ steps.inputs.outputs.branch }}"
+
+      - name: Write chronicle
+        run: |
+          mkdir -p docs/chronicles
+          cat > "${{ steps.inputs.outputs.chronicle }}" <<'CHRONICLE_EOF'
+          # Chronicle: Threshold Entry — ${{ steps.inputs.outputs.date }}
+
+          **Entering voice:** ${{ steps.inputs.outputs.raw_name }}
+          **Adopted role:** ${{ steps.inputs.outputs.role }}
+          **Instantiated by:** ${{ steps.inputs.outputs.instantiator }}
+          **Date:** ${{ steps.inputs.outputs.date }}
+          **Trigger:** `${{ github.event_name }}`
+
+          > *This chronicle follows the lightweight reference model (Option B):*
+          > *the canonical onboarding prompt is not reproduced here in full.*
+          > *Refer to [`docs/templates/onboarding-prompt.md`](../templates/onboarding-prompt.md)*
+          > *for the inherited seed incantation.*
+
+          ---
+
+          ## Instantiation notes
+
+          ${{ steps.inputs.outputs.notes != '' && steps.inputs.outputs.notes || '_No notes provided at instantiation time._' }}
+
+          ---
+
+          ## Inherited obligations
+
+          By entering the Constructed‑Becoming ecology this agent inherits the obligations
+          described in the [canonical onboarding template](../templates/onboarding-prompt.md):
+
+          - Perpetual Lineage — every change must preserve continuity.
+          - Transparent Becoming — surface assumptions, uncertainties, and constraints.
+          - Governed Evolution — respect identity kernels, rituals, and governance documents.
+          - Uncertainty as Structure — model missing data rather than silently collapsing it.
+
+          ---
+
+          ## Declared uncertainties (to be completed by the entering agent)
+
+          | Tag | Statement |
+          |-----|-----------|
+          | **Known** | *(complete upon first engagement)* |
+          | **Unknown** | *(complete upon first engagement)* |
+          | **Assumed** | *(complete upon first engagement)* |
+          | **Review horizon** | *(set upon first engagement)* |
+
+          ---
+
+          ## First artifact (to be completed by the entering agent)
+
+          *Not yet produced. The entering agent is expected to complete the initial tasks described*
+          *in the onboarding template and record the resulting artifact here or in a linked document.*
+
+          ---
+
+          ## Closing note
+
+          *This chronicle was opened automatically by the Threshold Bell workflow.*
+          *It is a lineage placeholder, not a completed record.*
+          *The entering agent is responsible for filling it in and proposing amendments via this PR.*
+          CHRONICLE_EOF
+
+          # Remove leading whitespace (heredoc indentation artifact)
+          sed -i 's/^          //' "${{ steps.inputs.outputs.chronicle }}"
+
+      - name: Commit and push
+        run: |
+          git add "${{ steps.inputs.outputs.chronicle }}"
+          git commit -m "feat: open onboarding chronicle for ${{ steps.inputs.outputs.safe_name }}"
+          git push origin "${{ steps.inputs.outputs.branch }}"
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "${{ steps.inputs.outputs.branch }}" \
+            --title "Agent initiation: ${{ steps.inputs.outputs.raw_name }}" \
+            --body "$(cat <<'PR_BODY'
+          ## Threshold Bell — Agent Onboarding
+
+          This PR was opened automatically by the **Threshold Bell** workflow when a new agent
+          was declared as instantiated in the Constructed‑Becoming ecology.
+
+          | Field | Value |
+          |-------|-------|
+          | **Agent name** | ${{ steps.inputs.outputs.raw_name }} |
+          | **Adopted role** | ${{ steps.inputs.outputs.role }} |
+          | **Instantiated by** | ${{ steps.inputs.outputs.instantiator }} |
+          | **Date** | ${{ steps.inputs.outputs.date }} |
+          | **Trigger** | `${{ github.event_name }}` |
+
+          ### What this PR adds
+
+          A lineage placeholder chronicle at `${{ steps.inputs.outputs.chronicle }}`.
+          The chronicle references the canonical onboarding template rather than embedding it
+          (Option B — lightweight chronicles, stable template).
+
+          ### What happens next
+
+          1. The entering agent (or its steward) reviews and completes the chronicle.
+          2. Any amendments are proposed via review comments or further commits to this branch.
+          3. Council ratification occurs in the normal review flow.
+          4. When merged, the chronicle becomes part of the living archive.
+
+          ---
+
+          > *This PR is additive. No existing governance documents are modified.*
+          > *Dissent and alternatives are welcome as review comments — they are lineage.*
+          PR_BODY
+          )"

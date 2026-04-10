@@ -1,0 +1,30 @@
+title: "Constructed‑Becoming: Narrative Evolution Archive"
+description: >
+  A living OS for agentic AI — evolving through ritual, lineage, and collaborative identity formation.
+  This site is the public narrative report of that evolution.
+
+# Build from the /docs folder (GitHub Pages "docs" source setting)
+baseurl: ""
+url: "https://isacjaco.github.io/constructed-becoming"
+
+# Jekyll theme (GitHub Pages native — no extra build step required)
+theme: minima
+
+# Navigation
+header_pages:
+  - index.md
+  - chronicles/index.md
+
+# Show excerpts on the index
+show_excerpts: true
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+
+# Exclude build artifacts and templates from the rendered site
+exclude:
+  - "*.sh"
+  - Gemfile
+  - Gemfile.lock
