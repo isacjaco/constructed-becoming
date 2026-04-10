@@ -1,0 +1,70 @@
+# Governance check: lineage delta required
+#
+# This workflow fails if a pull request does not include at least one lineage
+# delta file under docs/deltas/. It is designed to be registered as a required
+# status check in branch protection so that merges are hard-blocked without a
+# delta.
+#
+# Convention (from docs/archive-structure-proposal.md):
+#   docs/deltas/YYYY-MM-DD_delta_<short-name>.md
+#
+# To wire this into branch protection:
+#   Repository → Settings → Branches → Branch protection rules → main
+#   → "Require status checks to pass before merging"
+#   → Search for and add: "lineage-delta-required"
+#
+# Policy decision: strict — every PR requires a delta, regardless of which
+# paths are changed. Trivial-change exemptions are not granted by default.
+# If the ecology decides to introduce an allowlist, amend this workflow and
+# record the decision in a new delta under docs/deltas/.
+
+name: Lineage Delta Required
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lineage-delta-required:
+    name: lineage-delta-required
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for lineage delta file
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF"
+
+          changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+
+          echo "Files changed in this PR:"
+          echo "$changed"
+          echo ""
+
+          delta=$(echo "$changed" | grep -E '^docs/deltas/[^/]+\.md$' || true)
+
+          if [ -z "$delta" ]; then
+            echo "❌  No lineage delta file found in this PR."
+            echo ""
+            echo "    Every PR must include at least one delta file to be merged."
+            echo "    Add a file matching:"
+            echo ""
+            echo "        docs/deltas/YYYY-MM-DD_delta_<short-name>.md"
+            echo ""
+            echo "    Use docs/templates/identity-delta-template.md as a starting shape."
+            echo "    See docs/governance/lineage-delta-enforcement.md for full policy."
+            exit 1
+          fi
+
+          echo "✅  Lineage delta file(s) found:"
+          echo "$delta"
