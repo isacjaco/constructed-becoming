@@ -1,0 +1,208 @@
+name: Copilot Governance
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Governance task to run (audit | onboarding | lineage-check)"
+        required: true
+        default: "lineage-check"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Gate 1 — Lineage header check
+  # Every PR that touches governed paths must carry the required lineage fields.
+  # ──────────────────────────────────────────────────────────────────────────
+  lineage-header-check:
+    name: "Gate 1 · Lineage header present"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check PR body for required lineage fields
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          REQUIRED_FIELDS=(
+            "Lineage context"
+            "Uncertainty block"
+            "Reversibility"
+          )
+          MISSING=()
+          for field in "${REQUIRED_FIELDS[@]}"; do
+            if ! echo "$PR_BODY" | grep -qi "$field"; then
+              MISSING+=("$field")
+            fi
+          done
+          if [ ${#MISSING[@]} -ne 0 ]; then
+            echo "❌ Lineage gate failed. Missing required fields in PR body:"
+            for m in "${MISSING[@]}"; do
+              echo "   • $m"
+            done
+            echo ""
+            echo "Every PR must include:"
+            echo "  - 'Lineage context'   — what prior lineage prompted this change"
+            echo "  - 'Uncertainty block' — Known / Unknown / Assumed / Review horizon"
+            echo "  - 'Reversibility'     — how this change can be undone"
+            echo ""
+            echo "See docs/copilot-conversation-protocol.md for the full schema."
+            exit 1
+          fi
+          echo "✅ Lineage header check passed."
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Gate 2 — Identity Kernel protection
+  # Changes to identity-kernel paths require a delta document.
+  # ──────────────────────────────────────────────────────────────────────────
+  identity-kernel-guard:
+    name: "Gate 2 · Identity Kernel protected"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect identity-kernel file changes
+        id: kernel-files
+        run: |
+          KERNEL_PATHS=(
+            "docs/architecture.md"
+            "docs/law-of-perpetual-lineage.md"
+            "docs/ritual-protocols.md"
+            "docs/system-prompt.md"
+            "agents/"
+          )
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          TOUCHED=()
+          for path in "${KERNEL_PATHS[@]}"; do
+            if echo "$CHANGED" | grep -q "^$path"; then
+              TOUCHED+=("$path")
+            fi
+          done
+          if [ ${#TOUCHED[@]} -gt 0 ]; then
+            echo "kernel_touched=true" >> "$GITHUB_OUTPUT"
+            echo "touched_files=${TOUCHED[*]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "kernel_touched=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require delta document when kernel paths are touched
+        if: steps.kernel-files.outputs.kernel_touched == 'true'
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if ! echo "$CHANGED" | grep -q "^docs/deltas/"; then
+            echo "❌ Identity Kernel guard failed."
+            echo ""
+            echo "The following governed paths were modified:"
+            echo "${{ steps.kernel-files.outputs.touched_files }}"
+            echo ""
+            echo "Changes to identity-kernel paths require a lineage delta document"
+            echo "in docs/deltas/ following the naming convention:"
+            echo "  YYYY-MM-DD_delta_<short-name>.md"
+            echo ""
+            echo "See docs/deltas/ and docs/templates/identity-delta-template.md."
+            exit 1
+          fi
+          echo "✅ Identity Kernel guard passed — delta document found."
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Gate 3 — No self-merge enforcement (label check)
+  # Copilot-authored PRs must carry the 'copilot-authored' label and must not
+  # be approved by automated actors only.
+  # ──────────────────────────────────────────────────────────────────────────
+  no-self-merge-check:
+    name: "Gate 3 · No self-merge"
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request' &&
+      github.actor == 'github-actions[bot]'
+    steps:
+      - name: Block self-merge by automated actor
+        run: |
+          echo "❌ Self-merge gate: automated actors cannot merge their own PRs."
+          echo "A council voice or the Steward must review and approve."
+          exit 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Governance task dispatcher (workflow_dispatch only)
+  # Runs scoped Copilot tasks with human-initiated triggers.
+  # ──────────────────────────────────────────────────────────────────────────
+  governance-task:
+    name: "Governance task · ${{ github.event.inputs.task }}"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run lineage-check task
+        if: github.event.inputs.task == 'lineage-check'
+        run: |
+          echo "🔍 Lineage check: scanning Archive for missing uncertainty blocks..."
+          MISSING_BLOCKS=0
+          while IFS= read -r -d '' file; do
+            if ! grep -qi "uncertainty block\|Known:\|Unknown:\|Assumed:" "$file"; then
+              echo "  ⚠️  Missing uncertainty block: $file"
+              MISSING_BLOCKS=$((MISSING_BLOCKS + 1))
+            fi
+          done < <(find docs/chronicles docs/deltas -name "*.md" -print0 2>/dev/null)
+          if [ "$MISSING_BLOCKS" -gt 0 ]; then
+            echo ""
+            echo "⚠️  $MISSING_BLOCKS file(s) are missing uncertainty blocks."
+            echo "Consider proposing a delta to address these gaps."
+          else
+            echo "✅ All chronicle and delta files carry uncertainty blocks."
+          fi
+
+      - name: Run audit task
+        if: github.event.inputs.task == 'audit'
+        run: |
+          echo "📋 Audit: generating cultural health summary..."
+          echo ""
+          echo "### Archive inventory"
+          echo "Chronicles:"
+          find docs/chronicles -name "*.md" 2>/dev/null | wc -l
+          echo "Deltas:"
+          find docs/deltas -name "*.md" 2>/dev/null | wc -l
+          echo ""
+          echo "### Ratification status of deltas"
+          for f in docs/deltas/*.md; do
+            [ -f "$f" ] || continue
+            STATUS=$(grep -i "^- \[" "$f" | head -1 || echo "Status not found")
+            echo "  $f → $STATUS"
+          done
+          echo ""
+          echo "✅ Audit summary complete. Review output above and file a chronicle entry."
+
+      - name: Run onboarding task
+        if: github.event.inputs.task == 'onboarding'
+        run: |
+          echo "🌱 Onboarding scaffold: listing resources for a new agent..."
+          echo ""
+          echo "### Required reading (in order)"
+          echo "  1. docs/architecture.md"
+          echo "  2. docs/agent-behaviour.md"
+          echo "  3. docs/agent-initiation.md"
+          echo "  4. docs/ritual-protocols.md"
+          echo "  5. docs/law-of-perpetual-lineage.md"
+          echo "  6. docs/system-prompt.md"
+          echo "  7. Most recent chronicle in docs/chronicles/"
+          echo ""
+          echo "### Templates available"
+          ls docs/templates/ 2>/dev/null || echo "  (none found)"
+          echo ""
+          echo "### Agent personas registered"
+          ls agents/ 2>/dev/null || echo "  (none found)"
+          echo ""
+          echo "✅ Onboarding scaffold complete."
+          echo "File a threshold chronicle in docs/chronicles/ to complete initiation."
