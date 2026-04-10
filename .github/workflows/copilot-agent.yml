@@ -1,0 +1,158 @@
+# Copilot Agent Workflow
+#
+# Governance intent:
+#   This workflow validates governance requirements when changes touch
+#   governed directories (agents/, docs/, identity/, lineage/).
+#   It does NOT auto-merge, auto-approve, or take autonomous action.
+#   All ratification remains with the human steward.
+#
+# Triggers:
+#   - workflow_dispatch: manual invocation by a steward (primary trigger)
+#   - pull_request: label-gated validation on PRs touching governed paths
+#
+# Placeholder job:
+#   The `copilot-agent-placeholder` job is intentionally disabled by default.
+#   It marks the intended location for future Copilot automation (e.g., draft
+#   generation, lineage delta scaffolding). Enable it only after Council
+#   deliberation and explicit steward approval.
+
+name: Copilot Agent
+
+on:
+  # Primary trigger: manual invocation by a steward
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual invocation (recorded in lineage)"
+        required: true
+        type: string
+
+  # Secondary trigger: PR validation, gated by the 'copilot-assisted' label
+  pull_request:
+    types: [labeled]
+    paths:
+      - "agents/**"
+      - "docs/**"
+      - "identity/**"
+      - "lineage/**"
+      - ".github/workflows/**"
+
+# Minimal permissions — principle of least privilege
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 1: Lineage delta validation
+  #
+  # Validates that a lineage delta file exists when changes touch governed
+  # directories. Fails the workflow (but does not block merge) if no delta
+  # is found, surfacing the gap for the human steward to address.
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-lineage-delta:
+    name: Validate lineage delta presence
+    runs-on: ubuntu-latest
+
+    # Only run on PRs labelled 'copilot-assisted', or on manual dispatch
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.labels.*.name, 'copilot-assisted'))
+
+    steps:
+      - name: Check out repository (shallow, read-only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes in governed directories
+        id: governed-changes
+        shell: bash
+        run: |
+          # Determine the diff base
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            # workflow_dispatch: compare against the previous commit
+            BASE="HEAD~1"
+            HEAD="HEAD"
+          fi
+
+          # List files changed in governed directories
+          GOVERNED=$(git diff --name-only "$BASE" "$HEAD" -- \
+            'agents/' 'identity/' 'lineage/' 'docs/architecture.md' \
+            'docs/law-of-perpetual-lineage.md' || true)
+
+          if [ -n "$GOVERNED" ]; then
+            echo "governed_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Changed governed files:"
+            echo "$GOVERNED"
+          else
+            echo "governed_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No changes in governed directories."
+          fi
+
+      - name: Check for lineage delta file
+        if: steps.governed-changes.outputs.governed_changes == 'true'
+        shell: bash
+        run: |
+          # Expect at least one new file under docs/deltas/ in this diff
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="HEAD~1"
+            HEAD="HEAD"
+          fi
+
+          DELTAS=$(git diff --name-only --diff-filter=A "$BASE" "$HEAD" -- 'docs/deltas/' || true)
+
+          if [ -z "$DELTAS" ]; then
+            echo "::error::Governed directories were changed but no lineage delta file was found under docs/deltas/."
+            echo "::error::Please file a delta using docs/templates/identity-delta-template.md before this PR can be considered for ratification."
+            exit 1
+          else
+            echo "Lineage delta present:"
+            echo "$DELTAS"
+          fi
+
+      - name: Governance check passed
+        if: steps.governed-changes.outputs.governed_changes != 'true'
+        run: |
+          echo "No changes in governed directories. Lineage delta not required."
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 2: Copilot agent placeholder
+  #
+  # DISABLED BY DEFAULT — this job will not run until explicitly enabled.
+  #
+  # This is the designated location for future Copilot automation, such as:
+  #   - Drafting lineage delta stubs from PR descriptions
+  #   - Generating diagram scaffolds from architecture changes
+  #   - Summarising chronicle diffs for steward review
+  #
+  # To enable: remove the `if: false` condition, add the required steps, and
+  # file a lineage delta recording the Council deliberation that approved it.
+  # ──────────────────────────────────────────────────────────────────────────
+  copilot-agent-placeholder:
+    name: "Copilot agent (placeholder — disabled)"
+    runs-on: ubuntu-latest
+    needs: validate-lineage-delta
+
+    # Explicitly disabled. Do not remove this condition without Council approval
+    # and a corresponding lineage delta filed to docs/deltas/.
+    if: false
+
+    steps:
+      - name: Placeholder — Copilot automation not yet enabled
+        run: |
+          echo "This job is a placeholder for future Copilot agent automation."
+          echo "It is disabled by default and must not run until explicitly enabled"
+          echo "through Council deliberation and a lineage delta."
+          echo ""
+          echo "Potential future steps:"
+          echo "  - Draft lineage delta stubs from PR descriptions"
+          echo "  - Generate diagram scaffolds from architecture changes"
+          echo "  - Summarise chronicle diffs for steward review"
