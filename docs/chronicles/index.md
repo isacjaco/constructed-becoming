@@ -18,7 +18,12 @@ Constructed‑Becoming ecology. Chronicles accumulate but are never overwritten.
 {% if chronicle_pages.size > 0 %}
 | Date | Agent | Link |
 |---|---|---|
-{% for chronicle in chronicle_pages %}{% assign parts = chronicle.name | remove: '.md' | split: '_agent-onboarding_' %}| {{ parts[0] }} | {{ parts[1] | default: chronicle.name | remove: '.md' | replace: '-', ' ' | capitalize }} | [View]({{ chronicle.url | relative_url }}) |
+{% for chronicle in chronicle_pages %}
+  {% assign parts = chronicle.name | remove: '.md' | split: '_agent-onboarding_' %}
+  {% assign chronicle_date = parts[0] %}
+  {% assign raw_agent = parts[1] | default: chronicle.name | remove: '.md' %}
+  {% assign agent_label = raw_agent | replace: '-', ' ' | capitalize %}
+  | {{ chronicle_date }} | {{ agent_label }} | [View]({{ chronicle.url | relative_url }}) |
 {% endfor %}
 {% else %}
 
