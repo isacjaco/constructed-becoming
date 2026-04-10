@@ -90,3 +90,4 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Ritual protocols](docs/ritual-protocols.md) | Structured rituals for intentional identity evolution |
 | [System prompt](docs/system-prompt.md) | Reference system prompt for agentic workflow integration |
 | [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
+| [Uncertainty Engine](docs/uncertainty-engine.md) | Designing systems that model what they cannot know — Brain‑in‑a‑Vat as a system‑design analogy |
