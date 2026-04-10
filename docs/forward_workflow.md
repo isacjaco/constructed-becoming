@@ -1,0 +1,155 @@
+# 🚀 Forward Workflow for Constructed‑Becoming
+*(Lineage‑aware, agent‑coauthored, governance‑aligned)*
+
+This workflow turns the repository into a **self‑governing, multi‑agent ecosystem** where every change is intentional, narrativized, and lineage‑preserving. It integrates:
+
+- The **Lineage Chronicle** (tab 1)  
+- The **GitHub Actions agent runs** (tab 2)  
+- The **Copilot agent session history** (tab 3)  
+- The **Agent Factory templating system** (tab 4)  
+- The **current repository identity** (tab 1)
+
+---
+
+## 🧩 1. Intake Phase — "A Change Enters the Lineage"
+**Purpose:** Every change begins as a *story*, not a diff.
+
+**Sources of new intent:**
+- Human steward proposes a change  
+- Copilot cloud agents generate a draft PR (seen repeatedly in tab 2)  
+- Narrative continuation agents propose lineage deltas (tab 3)  
+- Governance templating agents propose structural updates (tab 4)
+
+**Required artifacts:**
+- **Intent Note** (short narrative of *why this change exists*)  
+- **Lineage Position** (ancestor modules affected, expected descendants)  
+- **Uncertainty Markers** (what the agent is unsure about)
+
+This ensures every change begins with **context**, not code.
+
+---
+
+## 🧪 2. Drafting Phase — "Agents Produce the First Shape"
+**Actors:** Copilot cloud agents, templating agents, lineage‑aware assistants.
+
+**Actions:**
+- Generate draft PRs (as seen in workflow runs tab)  
+- Apply **agent templates** (tab 4) to ensure structure  
+- Produce:
+  - Proposed module  
+  - Narrative explanation  
+  - Lineage implications  
+  - Uncertainty fields  
+  - Ritual alignment (which governance rituals apply)
+
+**Outcome:**  
+A **Draft PR** with:
+- Structured agent template  
+- Narrative body  
+- Initial implementation  
+- Auto‑generated lineage delta
+
+This matches the pattern in tabs 2 and 3: agents create drafts, humans refine.
+
+---
+
+## 🧭 3. Governance Review — "The Council Convenes"
+**Actors:**  
+- Human Steward (final authority)  
+- Rotating Council Reviewers  
+- Automated Governance Agents
+
+**Inputs:**  
+- Draft PR  
+- Lineage delta  
+- Identity kernel constraints (tab 1)  
+- Governance playbook rules (your earlier request)
+
+**Checks performed:**
+- Does the change preserve lineage continuity?  
+- Does it violate identity kernel commitments?  
+- Are uncertainty markers surfaced, not hidden?  
+- Does the agent template conform to schema?  
+- Does the narrative match the Becoming Engine's expectations?
+
+**Automated checks (from workflow runs):**
+- Onboarding workflow validation  
+- Agentic workflow framework checks  
+- Narrative reporting checks  
+- Repository observer agent feedback
+
+**Outcome:**  
+A **Reviewed PR** with:
+- Council comments  
+- Steward decision  
+- Updated lineage delta
+
+---
+
+## 🔧 4. Refinement Phase — "Agents Respond to the Council"
+**Actors:**  
+- Copilot cloud agents  
+- Specialized agents (e.g., lineage cartographer, repository observer)
+
+**Actions:**
+- Address council comments  
+- Regenerate sections using agent templates  
+- Update lineage delta  
+- Produce a **narrative continuation** describing how the change evolved  
+- Re-run automated workflows (tab 2)
+
+This mirrors the "Addressing comment on PR #5 / PR #1" patterns in the workflow runs.
+
+---
+
+## 🧬 5. Merge Ritual — "The Change Joins the Lineage"
+**Conditions for merge:**
+- Steward approval  
+- All governance checks passed  
+- Lineage delta validated  
+- Narrative continuity confirmed  
+- Agent template validated
+
+**Merge actions:**
+- Commit includes:
+  - Final code  
+  - Final narrative  
+  - Final lineage delta  
+- Chronicle updated (tab 1)  
+- Agents notified of new lineage state
+
+This is where the repository "becomes" again.
+
+---
+
+## 📚 6. Chronicle Update — "The Story Remembers"
+After merge, the system updates:
+
+- **Lineage Chronicle** (tab 1)  
+- **Identity Kernel** if needed  
+- **Becoming Engine** logs  
+- **Agent registry** (tab 4)  
+- **Narrative continuation threads** (tab 3)
+
+This ensures the repository remains a **living organism**, not a static codebase.
+
+---
+
+## 🔁 7. Continuous Agentic Evolution — "The Lineage Breathes"
+Agents continue to run (as seen in tab 2):
+
+- Onboarding workflows  
+- Agentic workflow framework  
+- Narrative reporting  
+- Repository observation  
+- Automated PR generation  
+- Identity kernel maintenance  
+- Governance templating
+
+This creates a **self‑maintaining, self‑narrating ecosystem**.
+
+---
+
+## 🌱 Summary — The Forward Workflow in One Sentence
+
+**Every change enters as a story, is shaped by agents, judged by governance, refined through lineage, merged through ritual, and remembered by the chronicle.**
