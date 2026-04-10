@@ -151,7 +151,8 @@ jobs:
           echo "🔍 Lineage check: scanning Archive for missing uncertainty blocks..."
           MISSING_BLOCKS=0
           while IFS= read -r -d '' file; do
-            if ! grep -qi "uncertainty block\|Known:\|Unknown:\|Assumed:" "$file"; then
+            if ! grep -qi "^## Uncertainty block" "$file" && \
+               ! grep -qi "^uncertainty:" "$file"; then
               echo "  ⚠️  Missing uncertainty block: $file"
               MISSING_BLOCKS=$((MISSING_BLOCKS + 1))
             fi
@@ -176,11 +177,14 @@ jobs:
           find docs/deltas -name "*.md" 2>/dev/null | wc -l
           echo ""
           echo "### Ratification status of deltas"
-          for f in docs/deltas/*.md; do
-            [ -f "$f" ] || continue
-            STATUS=$(grep -i "^- \[" "$f" | head -1 || echo "Status not found")
-            echo "  $f → $STATUS"
-          done
+          if [ -d docs/deltas ] && compgen -G "docs/deltas/*.md" > /dev/null 2>&1; then
+            for f in docs/deltas/*.md; do
+              STATUS=$(grep -i "^- \[" "$f" | head -1 || echo "Status not found")
+              echo "  $f → $STATUS"
+            done
+          else
+            echo "  (no delta files found)"
+          fi
           echo ""
           echo "✅ Audit summary complete. Review output above and file a chronicle entry."
 
