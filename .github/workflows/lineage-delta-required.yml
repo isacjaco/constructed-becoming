@@ -30,7 +30,7 @@ jobs:
                     | grep '^lineage/deltas/' || true)
 
           if [ -z "$changed" ]; then
-            echo "::error ::This PR does not include any added or modified files under lineage/deltas/."
+            echo "::error::This PR does not include any added or modified files under lineage/deltas/."
             echo ""
             echo "Every pull request must contain at least one lineage delta file."
             echo "Name it following the convention:  lineage/deltas/YYYY-MM-DD--<short-slug>.md"
