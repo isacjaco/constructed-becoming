@@ -1,0 +1,158 @@
+name: Agent Onboarding — Threshold Bell
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_name:
+        description: "Name / identifier for the new agent (used in branch name and chronicle filename)"
+        required: true
+        type: string
+      agent_role:
+        description: "Adopted role (e.g. Clerk-Engineer, Scout, Steward)"
+        required: false
+        type: string
+        default: "undeclared"
+      instantiator:
+        description: "Who / what triggered this instantiation (defaults to the GitHub actor)"
+        required: false
+        type: string
+        default: ""
+      notes:
+        description: "Free-form notes to include in the instantiation header of the chronicle"
+        required: false
+        type: string
+        default: ""
+
+  repository_dispatch:
+    types:
+      - agent_instantiated
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-onboarding-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------------
+      # Resolve inputs — works for both workflow_dispatch and
+      # repository_dispatch (payload lives in event.client_payload)
+      # ---------------------------------------------------------------
+      - name: Resolve inputs
+        id: inputs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          PAYLOAD_NAME: ${{ github.event.client_payload.agent_name }}
+          PAYLOAD_ROLE: ${{ github.event.client_payload.agent_role }}
+          PAYLOAD_INST: ${{ github.event.client_payload.instantiator }}
+          PAYLOAD_NOTES: ${{ github.event.client_payload.notes }}
+          INPUT_NAME: ${{ github.event.inputs.agent_name }}
+          INPUT_ROLE: ${{ github.event.inputs.agent_role }}
+          INPUT_INST: ${{ github.event.inputs.instantiator }}
+          INPUT_NOTES: ${{ github.event.inputs.notes }}
+        run: |
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            RAW_NAME="$PAYLOAD_NAME"
+            ROLE="$PAYLOAD_ROLE"
+            INSTANTIATOR="$PAYLOAD_INST"
+            NOTES="$PAYLOAD_NOTES"
+          else
+            RAW_NAME="$INPUT_NAME"
+            ROLE="$INPUT_ROLE"
+            INSTANTIATOR="$INPUT_INST"
+            NOTES="$INPUT_NOTES"
+          fi
+
+          # Sanitise: keep only alphanumerics, hyphens, underscores; collapse runs of hyphens
+          SAFE_NAME=$(printf '%s' "$RAW_NAME" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[^a-z0-9_-]/-/g' \
+            | sed 's/--*/-/g' \
+            | sed 's/^-//;s/-$//')
+
+          if [ -z "$SAFE_NAME" ]; then
+            echo "::error::agent_name resolved to an empty string after sanitisation."
+            exit 1
+          fi
+
+          if [ -z "$ROLE" ]; then ROLE="undeclared"; fi
+          if [ -z "$INSTANTIATOR" ]; then INSTANTIATOR="$ACTOR"; fi
+
+          DATE=$(date -u +%Y-%m-%d)
+          BRANCH="agent-initiation/${SAFE_NAME}-${DATE}"
+          CHRONICLE="docs/chronicles/${DATE}_agent-onboarding_${SAFE_NAME}.md"
+
+          echo "safe_name=${SAFE_NAME}"       >> "$GITHUB_OUTPUT"
+          echo "raw_name=${RAW_NAME}"         >> "$GITHUB_OUTPUT"
+          echo "role=${ROLE}"                 >> "$GITHUB_OUTPUT"
+          echo "instantiator=${INSTANTIATOR}" >> "$GITHUB_OUTPUT"
+          echo "notes=${NOTES}"               >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}"                 >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}"             >> "$GITHUB_OUTPUT"
+          echo "chronicle=${CHRONICLE}"       >> "$GITHUB_OUTPUT"
+
+      - name: Create branch
+        env:
+          BRANCH: ${{ steps.inputs.outputs.branch }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+
+      - name: Write chronicle from template
+        env:
+          CHRONICLE: ${{ steps.inputs.outputs.chronicle }}
+          RAW_NAME: ${{ steps.inputs.outputs.raw_name }}
+          ROLE: ${{ steps.inputs.outputs.role }}
+          INSTANTIATOR: ${{ steps.inputs.outputs.instantiator }}
+          ENTRY_DATE: ${{ steps.inputs.outputs.date }}
+          NOTES: ${{ steps.inputs.outputs.notes }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          mkdir -p docs/chronicles
+          if [ -z "$NOTES" ]; then
+            NOTES_TEXT="_No notes provided at instantiation time._"
+          else
+            NOTES_TEXT="$NOTES"
+          fi
+          export RAW_NAME ROLE INSTANTIATOR ENTRY_DATE EVENT_NAME NOTES_TEXT
+          envsubst '${RAW_NAME} ${ROLE} ${INSTANTIATOR} ${ENTRY_DATE} ${EVENT_NAME} ${NOTES_TEXT}' \
+            < docs/templates/chronicle-template.md \
+            > "$CHRONICLE"
+
+      - name: Commit and push
+        env:
+          CHRONICLE: ${{ steps.inputs.outputs.chronicle }}
+          SAFE_NAME: ${{ steps.inputs.outputs.safe_name }}
+          BRANCH: ${{ steps.inputs.outputs.branch }}
+        run: |
+          git add "$CHRONICLE"
+          git commit -m "feat: open onboarding chronicle for ${SAFE_NAME}"
+          git push origin "$BRANCH"
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.inputs.outputs.branch }}
+          RAW_NAME: ${{ steps.inputs.outputs.raw_name }}
+          ROLE: ${{ steps.inputs.outputs.role }}
+          INSTANTIATOR: ${{ steps.inputs.outputs.instantiator }}
+          ENTRY_DATE: ${{ steps.inputs.outputs.date }}
+          CHRONICLE: ${{ steps.inputs.outputs.chronicle }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          export RAW_NAME ROLE INSTANTIATOR ENTRY_DATE CHRONICLE EVENT_NAME
+          envsubst '${RAW_NAME} ${ROLE} ${INSTANTIATOR} ${ENTRY_DATE} ${CHRONICLE} ${EVENT_NAME}' \
+            < docs/templates/pr-body-template.md \
+            > /tmp/pr-body.md
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Agent initiation: ${RAW_NAME}" \
+            --body-file /tmp/pr-body.md
