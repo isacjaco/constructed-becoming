@@ -1,7 +1,3 @@
-name: ""
-description: "Standard pull request"
----
-
 ## Summary
 
 *What does this PR change and why?*

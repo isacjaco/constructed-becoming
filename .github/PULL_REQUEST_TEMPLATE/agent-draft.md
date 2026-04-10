@@ -1,8 +1,3 @@
-name: "agent-draft"
-description: "Pull request proposed by an agent or automated workflow"
-labels: ["agent-draft"]
----
-
 ## Agent summary
 
 *What did the agent do and why?*  

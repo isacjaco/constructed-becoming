@@ -8,6 +8,8 @@ jobs:
   validate-frontmatter:
     name: Validate agent YAML frontmatter
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +42,7 @@ jobs:
                   content = f.read()
 
               # Extract YAML frontmatter between --- delimiters
-              match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+              match = re.match(r"^\s*---\s*\n(.*?)\n---", content, re.DOTALL)
               if not match:
                   errors.append(f"{filepath}: missing YAML frontmatter (expected --- delimiters)")
                   continue

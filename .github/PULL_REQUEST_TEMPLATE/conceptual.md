@@ -1,8 +1,3 @@
-name: "conceptual"
-description: "Pull request introducing philosophical, diagrammatic, or architectural concepts"
-labels: ["conceptual"]
----
-
 ## Conceptual summary
 
 *Describe the idea, model, or diagram this PR introduces or amends.*  
