@@ -15,6 +15,7 @@ from pathlib import Path
 
 CHRONICLE_PATH = Path("docs/chronicle.md")
 SENTINEL_PATTERN = re.compile(r"<!-- last-chronicled-commit: ([a-f0-9]+) -->")
+MAX_COMMITS_PER_ENTRY = 12
 
 # ── Narrative phrase pools ────────────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ def generate_entry(commit_lines: list[str], files: list[str], epoch_n: int, sha:
     categories = categorise(files, commit_lines)
     title = narrative_title(categories)
     roman = to_roman(epoch_n)
-    date_str = datetime.now(timezone.utc).strftime("%Y‑%m‑%d")
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     opening = rng.choice(OPENINGS)
     transition = rng.choice(TRANSITIONS)
@@ -154,7 +155,7 @@ def generate_entry(commit_lines: list[str], files: list[str], epoch_n: int, sha:
     # Build bullet list of commit messages (strip leading SHA)
     bullets = "\n".join(
         f"- {line.split(' ', 1)[1]}" if " " in line else f"- {line}"
-        for line in commit_lines[:12]
+        for line in commit_lines[:MAX_COMMITS_PER_ENTRY]
     )
 
     return (
