@@ -1,0 +1,48 @@
+name: Narrative Clerk — Repository Observer
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      # Prevent re-triggering when the Clerk commits a new chronicle entry
+      - "docs/chronicle.md"
+
+permissions:
+  contents: write
+
+jobs:
+  chronicle:
+    name: Weave new lineage into the Chronicle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the living OS
+        uses: actions/checkout@v4
+        with:
+          # Enough history for the Clerk to see what changed
+          fetch-depth: 20
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure the Clerk's identity
+        run: |
+          git config user.name  "Narrative Clerk"
+          git config user.email "narrative-clerk@constructed-becoming"
+
+      - name: Invoke the Narrative Clerk
+        run: python scripts/chronicle-agent.py
+
+      - name: Commit the new chronicle entry
+        run: |
+          git add docs/chronicle.md
+          if git diff --cached --quiet; then
+            echo "No chronicle changes to commit."
+          else
+            git commit -m "chronicle: weave new lineage into the Archive"
+            git push
+          fi
