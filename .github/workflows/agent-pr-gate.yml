@@ -1,0 +1,82 @@
+name: Agent PR gate
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  agent-pr-gate:
+    name: Agent PR gate
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check agent-draft label and human-approval
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          labels='${{ toJson(github.event.pull_request.labels.*.name) }}'
+
+          is_agent_draft=$(echo "$labels" | python3 -c "
+          import sys, json
+          labels = json.load(sys.stdin)
+          print('true' if 'agent-draft' in labels else 'false')
+          ")
+
+          is_human_approved=$(echo "$labels" | python3 -c "
+          import sys, json
+          labels = json.load(sys.stdin)
+          print('true' if 'human-approved' in labels else 'false')
+          ")
+
+          echo "agent-draft: $is_agent_draft"
+          echo "human-approved: $is_human_approved"
+
+          if [ "$is_agent_draft" = "true" ] && [ "$is_human_approved" = "false" ]; then
+            echo "::error::Agent-authored PRs (label: agent-draft) require the 'human-approved' label before merge. A human reviewer must review the PR and apply that label."
+            exit 1
+          fi
+
+  lineage-delta-check:
+    name: Lineage delta check
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes to identity modules
+        id: identity-changes
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.event.pull_request.head.sha }}"
+
+          changed=$(git diff --name-only "$base_sha" "$head_sha" | grep -E '^(docs/law-of-perpetual-lineage\.md|docs/governance-playbook\.md|docs/architecture\.md|docs/ritual-protocols\.md|docs/system-prompt\.md|agents/)' || true)
+
+          if [ -n "$changed" ]; then
+            echo "identity_changed=true" >> "$GITHUB_OUTPUT"
+            echo "Changed identity files:"
+            echo "$changed"
+          else
+            echo "identity_changed=false" >> "$GITHUB_OUTPUT"
+            echo "No identity modules changed."
+          fi
+
+      - name: Check for lineage delta
+        if: steps.identity-changes.outputs.identity_changed == 'true'
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.event.pull_request.head.sha }}"
+
+          delta_files=$(git diff --name-only "$base_sha" "$head_sha" | grep -E '^docs/deltas/' || true)
+
+          if [ -z "$delta_files" ]; then
+            echo "::error::This PR modifies identity modules but does not include a lineage delta file."
+            echo "::error::Add a delta at docs/deltas/YYYY-MM-DD_delta_<slug>.md using the template at docs/templates/identity-delta-template.md."
+            exit 1
+          else
+            echo "Lineage delta present:"
+            echo "$delta_files"
+          fi

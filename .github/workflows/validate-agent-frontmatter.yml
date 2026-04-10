@@ -1,0 +1,79 @@
+name: Validate agent frontmatter
+on:
+  pull_request:
+    paths:
+      - "agents/*.md"
+
+jobs:
+  validate-frontmatter:
+    name: Validate agent YAML frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: pip install pyyaml --quiet
+
+      - name: Validate frontmatter schema for changed agent files
+        run: |
+          python3 - <<'PYEOF'
+          import sys, os, re
+          import yaml
+
+          REQUIRED_FIELDS = ["name", "role", "status", "epoch_entered", "authored_by", "scope"]
+          VALID_STATUSES = {"draft", "initiated", "active", "retired"}
+
+          base_ref = os.environ.get("GITHUB_BASE_REF", "")
+          # Collect agent files changed in this PR by scanning the workspace
+          # (we validate ALL agents/*.md present; CI only runs when agents/*.md changes)
+          agent_dir = "agents"
+          errors = []
+
+          for filename in os.listdir(agent_dir):
+              if not filename.endswith(".md"):
+                  continue
+              if filename == "template.md":
+                  continue  # skip the template itself
+
+              filepath = os.path.join(agent_dir, filename)
+              with open(filepath, "r") as f:
+                  content = f.read()
+
+              # Extract YAML frontmatter between --- delimiters
+              match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+              if not match:
+                  errors.append(f"{filepath}: missing YAML frontmatter (expected --- delimiters)")
+                  continue
+
+              try:
+                  data = yaml.safe_load(match.group(1))
+              except yaml.YAMLError as e:
+                  errors.append(f"{filepath}: invalid YAML — {e}")
+                  continue
+
+              if not isinstance(data, dict):
+                  errors.append(f"{filepath}: frontmatter must be a YAML mapping")
+                  continue
+
+              for field in REQUIRED_FIELDS:
+                  if field not in data:
+                      errors.append(f"{filepath}: missing required field '{field}'")
+
+              if "status" in data and data["status"] not in VALID_STATUSES:
+                  errors.append(
+                      f"{filepath}: 'status' must be one of {sorted(VALID_STATUSES)}, got '{data['status']}'"
+                  )
+
+              if "scope" in data and isinstance(data["scope"], dict):
+                  for key in ("autonomous", "propose_only"):
+                      if key not in data["scope"]:
+                          errors.append(f"{filepath}: 'scope.{key}' is required")
+
+          if errors:
+              print("Frontmatter validation errors:")
+              for e in errors:
+                  print(f"  ::error::{e}")
+              sys.exit(1)
+          else:
+              print("All agent files passed frontmatter validation.")
+          PYEOF
