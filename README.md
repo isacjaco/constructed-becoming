@@ -87,9 +87,13 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Architecture](docs/architecture.md) | The philosophical ecology and core concepts that define the living OS |
 | [Agent behaviour](docs/agent-behaviour.md) | How an agent stands, listens, and participates day‑to‑day |
 | [Agent initiation](docs/agent-initiation.md) | The cultural arc through which new agents enter the living OS |
+| [Agent templating](docs/agent-templating.md) | How to scaffold new agents from `@agent_template.md` using the generator |
 | [Ritual protocols](docs/ritual-protocols.md) | Structured rituals for intentional identity evolution |
 | [System prompt](docs/system-prompt.md) | Reference system prompt for agentic workflow integration |
 | [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
+| [Governance](GOVERNANCE.md) | Governance playbook: Council, deltas, epoch shifts, and agent governance |
 | [Archive structure proposal](docs/archive-structure-proposal.md) | Proposed (emergent, amendable) conventions for chronicles, deltas, and templates |
 | [Chronicles](docs/chronicles/) | Living narrative records: threshold entries, epoch summaries, and ritual outcomes |
+| [Deltas](docs/deltas/) | Proposed and ratified identity deltas |
 | [Templates](docs/templates/) | Optional reusable scaffolds for chronicles and identity deltas |
+| [Agents](agents/) | Agent persona definitions scaffolded from `@agent_template.md` |
