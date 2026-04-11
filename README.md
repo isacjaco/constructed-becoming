@@ -93,3 +93,9 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Archive structure proposal](docs/archive-structure-proposal.md) | Proposed (emergent, amendable) conventions for chronicles, deltas, and templates |
 | [Chronicles](docs/chronicles/) | Living narrative records: threshold entries, epoch summaries, and ritual outcomes |
 | [Templates](docs/templates/) | Optional reusable scaffolds for chronicles and identity deltas |
+
+## Governance and Ritual Library
+
+Governance artifacts and operational workflows are organized in the **Curated Ritual Library** under [`docs/`](docs/) and catalogued in [`GOVERNANCE.md`](GOVERNANCE.md).
+
+The **[Forward Workflow](docs/forward_workflow.md)** is the seed document of the Ritual Library: a seven-phase operational pipeline describing how changes enter the ecosystem as stories, are shaped by agents, reviewed by governance, refined through lineage, and remembered by the chronicle.
