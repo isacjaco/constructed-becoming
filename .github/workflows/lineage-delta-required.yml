@@ -1,0 +1,43 @@
+name: Lineage Delta Required
+
+# Run on every pull-request event so the check is always present.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Least-privilege: only read repository contents (to inspect changed files).
+permissions:
+  contents: read
+
+jobs:
+  lineage-delta-required:
+    name: lineage-delta-required
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify a lineage delta file is present
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # List files added or modified in this PR that live under lineage/deltas/
+          changed=$(git diff --name-only --diff-filter=AM "$BASE_SHA" "$HEAD_SHA" \
+                    | grep '^lineage/deltas/' || true)
+
+          if [ -z "$changed" ]; then
+            echo "::error::This PR does not include any added or modified files under lineage/deltas/."
+            echo ""
+            echo "Every pull request must contain at least one lineage delta file."
+            echo "Name it following the convention:  lineage/deltas/YYYY-MM-DD--<short-slug>.md"
+            echo ""
+            echo "See the Contributing section in README.md for details."
+            exit 1
+          fi
+
+          echo "Lineage delta file(s) found:"
+          echo "$changed"

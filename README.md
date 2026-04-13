@@ -93,3 +93,46 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Archive structure proposal](docs/archive-structure-proposal.md) | Proposed (emergent, amendable) conventions for chronicles, deltas, and templates |
 | [Chronicles](docs/chronicles/) | Living narrative records: threshold entries, epoch summaries, and ritual outcomes |
 | [Templates](docs/templates/) | Optional reusable scaffolds for chronicles and identity deltas |
+| [Lineage deltas](lineage/deltas/) | Required per-PR change records; enforced by the `lineage-delta-required` check |
+
+---
+
+## Contributing
+
+### Lineage delta requirement
+
+Every pull request to this repository **must** include at least one file added or
+modified under `lineage/deltas/`.  This is enforced by the
+`lineage-delta-required` GitHub Actions status check, which fails on any PR that omits
+a delta file.
+
+#### How to satisfy the check
+
+1. Create a Markdown file under `lineage/deltas/` following the naming convention:
+
+   ```
+   lineage/deltas/YYYY-MM-DD--<short-slug>.md
+   ```
+
+   Example: `lineage/deltas/2026-04-10--add-clerk-role.md`
+
+2. Write a short entry describing *what* is changing and *why*.  
+   Use `docs/templates/identity-delta-template.md` as a scaffold if helpful.
+
+3. Commit the delta file as part of the same PR branch.
+
+The PR template will remind you of these steps and ask you to paste the delta file path
+before submitting.
+
+#### Enabling hard enforcement via branch protection
+
+To make the check **block merges** (not just warn), add the status check as a required
+check in your branch protection rule:
+
+1. Go to **Settings → Branches → Branch protection rules** for the `main` branch.
+2. Enable **Require status checks to pass before merging**.
+3. Search for and add **`lineage-delta-required`** to the required checks list.
+4. Save the rule.
+
+Once enabled, GitHub will prevent any PR from being merged until the
+`lineage-delta-required` check passes — meaning a valid delta file is present.
