@@ -82,14 +82,38 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 
 ## Documentation
 
+### Governance
+
+| Document | Description |
+|---|---|
+| [Governance README](GOVERNANCE.md) | Constitutional description of the five-phase Becoming Engine |
+| [Branch Governance](docs/branch-governance.md) | How branches and councils interact to form the constitutional layer |
+
+### Architecture and Philosophy
+
 | Document | Description |
 |---|---|
 | [Architecture](docs/architecture.md) | The philosophical ecology and core concepts that define the living OS |
+| [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
+
+### Rituals and Protocols
+
+| Document | Description |
+|---|---|
 | [Agent behaviour](docs/agent-behaviour.md) | How an agent stands, listens, and participates day‑to‑day |
 | [Agent initiation](docs/agent-initiation.md) | The cultural arc through which new agents enter the living OS |
 | [Ritual protocols](docs/ritual-protocols.md) | Structured rituals for intentional identity evolution |
+
+### Technical Integration
+
+| Document | Description |
+|---|---|
 | [System prompt](docs/system-prompt.md) | Reference system prompt for agentic workflow integration |
-| [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
 | [Archive structure proposal](docs/archive-structure-proposal.md) | Proposed (emergent, amendable) conventions for chronicles, deltas, and templates |
+
+### Living Archive
+
+| Document | Description |
+|---|---|
 | [Chronicles](docs/chronicles/) | Living narrative records: threshold entries, epoch summaries, and ritual outcomes |
 | [Templates](docs/templates/) | Optional reusable scaffolds for chronicles and identity deltas |
