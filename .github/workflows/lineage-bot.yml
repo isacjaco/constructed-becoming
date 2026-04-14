@@ -1,0 +1,102 @@
+name: Lineage Bot
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  append-lineage-entry:
+    # Skip commits made by the bot itself to prevent an infinite loop
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Gather commit metadata
+        id: meta
+        run: |
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_SHORT="$(echo "$COMMIT_SHA" | cut -c1-7)"
+          COMMIT_MSG="$(git log -1 --pretty=format:'%s' "$COMMIT_SHA")"
+          COMMIT_AUTHOR="$(git log -1 --pretty=format:'%an' "$COMMIT_SHA")"
+          COMMIT_DATE="$(git log -1 --pretty=format:'%cd' --date=format:'%Y-%m-%d' "$COMMIT_SHA")"
+          CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || true)"
+
+          # Determine current epoch chronicle file (current year-month)
+          EPOCH_YEAR_MONTH="$(date -u +%Y-%m)"
+          CHRONICLE_FILE="docs/chronicles/epoch-${EPOCH_YEAR_MONTH}.md"
+
+          echo "commit_sha=$COMMIT_SHA"       >> "$GITHUB_OUTPUT"
+          echo "commit_short=$COMMIT_SHORT"   >> "$GITHUB_OUTPUT"
+          echo "commit_msg=$COMMIT_MSG"       >> "$GITHUB_OUTPUT"
+          echo "commit_author=$COMMIT_AUTHOR" >> "$GITHUB_OUTPUT"
+          echo "commit_date=$COMMIT_DATE"     >> "$GITHUB_OUTPUT"
+          echo "chronicle_file=$CHRONICLE_FILE" >> "$GITHUB_OUTPUT"
+
+          # Store changed files in a temp file to handle multi-line output safely
+          echo "$CHANGED_FILES" > /tmp/changed_files.txt
+
+      - name: Ensure epoch chronicle exists
+        run: |
+          CHRONICLE_FILE="${{ steps.meta.outputs.chronicle_file }}"
+          EPOCH_YEAR_MONTH="$(date -u +%Y-%m)"
+
+          mkdir -p docs/chronicles
+
+          if [ ! -f "$CHRONICLE_FILE" ]; then
+            {
+              printf '# Epoch Chronicle — %s\n\n' "$EPOCH_YEAR_MONTH"
+              printf '> *Living narrative record of all ratified changes during this epoch.*\n'
+              printf '> *Entries are appended automatically by the Lineage Bot on every push to `main`.*\n'
+              printf '> *Each entry records the commit, its author, and the files it touched.*\n\n'
+              printf -- '---\n\n'
+            } > "$CHRONICLE_FILE"
+          fi
+
+      - name: Append lineage entry
+        run: |
+          CHRONICLE_FILE="${{ steps.meta.outputs.chronicle_file }}"
+          COMMIT_SHORT="${{ steps.meta.outputs.commit_short }}"
+          COMMIT_MSG="${{ steps.meta.outputs.commit_msg }}"
+          COMMIT_AUTHOR="${{ steps.meta.outputs.commit_author }}"
+          COMMIT_DATE="${{ steps.meta.outputs.commit_date }}"
+          COMMIT_SHA="${{ steps.meta.outputs.commit_sha }}"
+
+          {
+            printf '## %s — `%s`\n\n' "$COMMIT_DATE" "$COMMIT_SHORT"
+            printf '**Author:** %s\n' "$COMMIT_AUTHOR"
+            printf '**Commit:** [`%s`](https://github.com/${{ github.repository }}/commit/%s)\n' \
+              "$COMMIT_SHORT" "$COMMIT_SHA"
+            printf '**Message:** %s\n\n' "$COMMIT_MSG"
+            printf '**Files touched:**\n\n'
+            while IFS= read -r f; do
+              printf '- `%s`\n' "$f"
+            done < /tmp/changed_files.txt
+            printf '\n---\n\n'
+          } >> "$CHRONICLE_FILE"
+
+      - name: Commit and push lineage entry
+        run: |
+          CHRONICLE_FILE="${{ steps.meta.outputs.chronicle_file }}"
+          COMMIT_SHORT="${{ steps.meta.outputs.commit_short }}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add "$CHRONICLE_FILE"
+
+          # Only commit if there is something new to record
+          if git diff --cached --quiet; then
+            echo "No changes to chronicle — skipping commit."
+          else
+            git commit -m "chore(lineage): append epoch chronicle entry for ${COMMIT_SHORT}"
+            git push origin main
+          fi

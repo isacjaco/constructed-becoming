@@ -1,0 +1,104 @@
+name: Audit Cycle
+
+on:
+  schedule:
+    # Run on the 1st of every month at 08:00 UTC
+    - cron: '0 8 1 * *'
+  workflow_dispatch:
+
+jobs:
+  open-audit-issue:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Gather epoch context
+        id: context
+        run: |
+          TODAY="$(date -u +%Y-%m-%d)"
+
+          # The audit runs on the 1st to review the *previous* completed epoch
+          EPOCH_YEAR_MONTH="$(date -u -d 'last month' +%Y-%m)"
+          EPOCH_START="${EPOCH_YEAR_MONTH}-01"
+          EPOCH_END="$(date -u +%Y-%m-01)"  # the 1st of the current month = exclusive end
+
+          CHRONICLE_FILE="docs/chronicles/epoch-${EPOCH_YEAR_MONTH}.md"
+
+          # Count merge commits within the previous month's epoch
+          PR_COUNT="$(git log --oneline --merges --after="${EPOCH_START}" --before="${EPOCH_END}" | wc -l | tr -d ' ')"
+
+          echo "today=$TODAY"                     >> "$GITHUB_OUTPUT"
+          echo "epoch=$EPOCH_YEAR_MONTH"           >> "$GITHUB_OUTPUT"
+          echo "chronicle_file=$CHRONICLE_FILE"   >> "$GITHUB_OUTPUT"
+          echo "pr_count=$PR_COUNT"               >> "$GITHUB_OUTPUT"
+
+      - name: Check for existing open audit issue
+        id: dedup
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EPOCH="${{ steps.context.outputs.epoch }}"
+          EXISTING="$(gh issue list --state open --label "audit-cycle" --search "Audit Cycle — Epoch ${EPOCH}" --json number --jq 'length')"
+          if [ "${EXISTING:-0}" -gt 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "An open Audit Cycle issue already exists for epoch ${EPOCH} — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open Audit Cycle issue
+        if: steps.dedup.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY="${{ steps.context.outputs.today }}"
+          EPOCH="${{ steps.context.outputs.epoch }}"
+          CHRONICLE_FILE="${{ steps.context.outputs.chronicle_file }}"
+          PR_COUNT="${{ steps.context.outputs.pr_count }}"
+
+          ISSUE_BODY_FILE="$(mktemp)"
+
+          {
+            printf '## Audit Cycle — Epoch %s\n\n' "$EPOCH"
+            printf '> *The Clerk's Audit is a ritual of remembering.*\n'
+            printf '> *The system pauses to re-read itself, to surface what has settled,*\n'
+            printf '> *and to propose governance refinements that keep the soil of the Archive fertile.*\n\n'
+            printf -- '---\n\n'
+            printf '### Scope of this audit\n\n'
+            printf '- **Epoch:** %s\n' "$EPOCH"
+            printf '- **Audit date:** %s\n' "$TODAY"
+            printf '- **Epoch chronicle:** `%s`\n' "$CHRONICLE_FILE"
+            printf '- **Ratified changes (approx.):** %s merged commits\n\n' "$PR_COUNT"
+            printf -- '---\n\n'
+            printf '### Audit tasks for the Council\n\n'
+            printf '- [ ] Read the epoch chronicle (`%s`) and note any tensions or patterns.\n' "$CHRONICLE_FILE"
+            printf '- [ ] Review all open Review Horizon issues and confirm they have been addressed.\n'
+            printf '- [ ] Identify any governance documents that need amendment or retirement.\n'
+            printf '- [ ] Propose a **Governance Refinement** delta if the Archive needs pruning.\n'
+            printf '- [ ] Update the epoch name or declare a new epoch if a phase boundary has been reached.\n'
+            printf '- [ ] Close this issue with a brief closing note once the audit is complete.\n\n'
+            printf -- '---\n\n'
+            printf '### Uncertainty block\n\n'
+            printf '```\n'
+            printf 'Known:          Audit opened automatically for epoch %s\n' "$EPOCH"
+            printf 'Unknown:        Which threads from this epoch remain unresolved\n'
+            printf 'Assumed:        The Council will review and close this within the epoch\n'
+            printf 'Review horizon: End of epoch %s\n' "$EPOCH"
+            printf '```\n\n'
+            printf -- '---\n\n'
+            printf '*Opened automatically by the Audit Cycle workflow on %s.*\n' "$TODAY"
+          } > "$ISSUE_BODY_FILE"
+
+          gh issue create \
+            --title "Audit Cycle — Epoch ${EPOCH}" \
+            --body-file "$ISSUE_BODY_FILE" \
+            --label "audit-cycle"
+
+          rm -f "$ISSUE_BODY_FILE"
