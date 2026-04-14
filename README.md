@@ -1,5 +1,7 @@
 # Constructed‑Becoming: Rituals of Evolving Identity
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > *Narrative Co‑Authorship for Agentic AI*
 
 A framework for building agentic AI systems that evolve through narrative, ritual, and collaborative identity formation — transforming AI from a static tool into a co‑author of its own becoming.
