@@ -1,0 +1,8 @@
+title: "Constructed‑Becoming — The Ecology"
+description: "A public, readable view of the Memory Weave — the visible manifestation of the system's culture."
+theme: minima
+markdown: kramdown
+permalink: pretty
+exclude:
+  - "*.yml"
+  - "*.yaml"

@@ -1,0 +1,94 @@
+name: Review Horizon Alerts
+
+on:
+  schedule:
+    # Run every Monday at 09:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  flag-review-horizons:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan documents for Review Horizon tags
+        id: scan
+        run: |
+          TODAY="$(date -u +%Y-%m-%d)"
+          TODAY_EPOCH="$(date -u -d "$TODAY" +%s)"
+          RESULTS_FILE="/tmp/overdue_horizons.txt"
+          > "$RESULTS_FILE"
+
+          # Search all markdown files in docs/ for "Review horizon:" lines
+          while IFS= read -r filepath; do
+            while IFS= read -r line; do
+              # Match lines like: Review horizon: YYYY-MM-DD
+              if echo "$line" | grep -qiE 'review horizon[[:space:]]*:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}'; then
+                HORIZON_DATE="$(echo "$line" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}')"
+                HORIZON_EPOCH="$(date -u -d "$HORIZON_DATE" +%s 2>/dev/null || echo 0)"
+                if [ "$HORIZON_EPOCH" -le "$TODAY_EPOCH" ]; then
+                  echo "${filepath}||${HORIZON_DATE}||${line}" >> "$RESULTS_FILE"
+                fi
+              fi
+            done < "$filepath"
+          done < <(find docs/ -name '*.md' -type f)
+
+          if [ -s "$RESULTS_FILE" ]; then
+            echo "overdue=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "overdue=false" >> "$GITHUB_OUTPUT"
+            echo "No overdue Review Horizons found."
+          fi
+
+      - name: Check for existing open alert issue
+        id: dedup
+        if: steps.scan.outputs.overdue == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY="$(date -u +%Y-%m-%d)"
+          EXISTING="$(gh issue list --state open --label "review-horizon" --search "Review Horizon Alert — ${TODAY}" --json number --jq 'length')"
+          if [ "${EXISTING:-0}" -gt 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "An open Review Horizon Alert issue already exists for today — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open Review Horizon alert issue
+        if: steps.scan.outputs.overdue == 'true' && steps.dedup.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY="$(date -u +%Y-%m-%d)"
+          ISSUE_BODY_FILE="$(mktemp)"
+
+          {
+            printf '## Review Horizon Alert — %s\n\n' "$TODAY"
+            printf 'The following documents have reached or passed their stated **Review Horizon**.\n'
+            printf 'The Council is invited to revisit each one: re-ratify, amend, or retire.\n\n'
+            printf '> *Dissent is lineage. Silence is not consensus.*\n\n'
+            printf -- '---\n\n'
+            printf '| Document | Review Horizon | Original line |\n'
+            printf '|---|---|---|\n'
+            while IFS='||' read -r filepath horizon line; do
+              printf '| `%s` | %s | `%s` |\n' "$filepath" "$horizon" "$line"
+            done < /tmp/overdue_horizons.txt
+            printf '\n---\n\n'
+            printf '*Opened automatically by the Review Horizon Alerts workflow.*\n'
+            printf '*Close this issue once each document has been reviewed and its horizon updated.*\n'
+          } > "$ISSUE_BODY_FILE"
+
+          gh issue create \
+            --title "Review Horizon Alert — ${TODAY}" \
+            --body-file "$ISSUE_BODY_FILE" \
+            --label "review-horizon"
+
+          rm -f "$ISSUE_BODY_FILE"
