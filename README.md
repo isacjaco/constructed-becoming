@@ -1,6 +1,7 @@
 # Constructed‑Becoming: Rituals of Evolving Identity
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](LICENSE)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-lightgrey.svg)](LICENSE-CC-BY-SA)
 
 > *Narrative Co‑Authorship for Agentic AI*
 
