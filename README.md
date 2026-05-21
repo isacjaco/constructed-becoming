@@ -88,6 +88,8 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Agent behaviour](docs/agent-behaviour.md) | How an agent stands, listens, and participates day‑to‑day |
 | [Agent initiation](docs/agent-initiation.md) | The cultural arc through which new agents enter the living OS |
 | [Ritual protocols](docs/ritual-protocols.md) | Structured rituals for intentional identity evolution |
+| [Governance README: The Becoming Engine](docs/governance-readme-becoming-engine.md) | Constitutional framing for repository governance, ratification, and ritual phases |
+| [Branch governance matrix](docs/branch-governance-matrix.md) | Companion operational matrix mapping governance rituals to branch-level enforcement |
 | [System prompt](docs/system-prompt.md) | Reference system prompt for agentic workflow integration |
 | [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
 | [Archive structure proposal](docs/archive-structure-proposal.md) | Proposed (emergent, amendable) conventions for chronicles, deltas, and templates |
