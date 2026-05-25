@@ -1,0 +1,36 @@
+# Licensing Notice — Constructed‑Becoming
+
+Copyright (c) 2026 isacjaco
+
+This repository uses a dual-licence structure. The applicable licence is
+determined solely by file path, as listed below. Where a file path is not
+listed under CC-BY-SA 4.0, the Mozilla Public License 2.0 applies.
+
+---
+
+## Files licensed under CC-BY-SA 4.0
+
+The following files and directories are licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International licence (see LICENSE-CC-BY-SA):
+
+  docs/chronicles/
+  docs/templates/
+  docs/architecture.md
+  docs/agent-behaviour.md
+  docs/agent-initiation.md
+  docs/ritual-protocols.md
+  docs/law-of-perpetual-lineage.md
+  docs/archive-structure-proposal.md
+  README.md
+
+## All other files — MPL-2.0
+
+All files not listed above — including but not limited to source code,
+workflows, agent personas (e.g. docs/system-prompt.md), governance
+structures, identity kernel files, and configuration — are licensed under
+the Mozilla Public License 2.0 (see LICENSE).
+
+## Precedence rule
+
+CC-BY-SA 4.0 applies exclusively to the paths listed above.
+Every other file in this repository is governed by MPL-2.0.
