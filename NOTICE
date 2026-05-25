@@ -25,10 +25,10 @@ Attribution-ShareAlike 4.0 International licence (see LICENSE-CC-BY-SA):
 
 ## All other files — MPL-2.0
 
-All files not listed above — including but not limited to source code,
-workflows, agent personas (e.g. docs/system-prompt.md), governance
-structures, identity kernel files, and configuration — are licensed under
-the Mozilla Public License 2.0 (see LICENSE).
+All files not listed above are licensed under the Mozilla Public License 2.0
+(see LICENSE). This covers source code, workflows, agent personas (e.g.
+docs/system-prompt.md), governance structures, identity kernel files, and
+configuration.
 
 ## Precedence rule
 
