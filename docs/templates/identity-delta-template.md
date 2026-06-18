@@ -70,10 +70,10 @@ Review horizon: when to re-evaluate if not yet deliberated
 
 *(To be filled in after deliberation)*
 
-- [ ] Ratified — effective from: [date]
-- [ ] Amended — see: [link to amended delta]
-- [ ] Deferred — revisit at: [epoch / date]
-- [ ] Retired — reason: [brief note]
+- Ratified — effective from: [date]
+- Amended — see: [link to amended delta]
+- Deferred — revisit at: [epoch / date]
+- Retired — reason: [brief note]
 
 ---
 
