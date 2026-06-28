@@ -67,7 +67,7 @@ jobs:
 
           {
             printf '## Audit Cycle — Epoch %s\n\n' "$EPOCH"
-            printf '> *The Clerk's Audit is a ritual of remembering.*\n'
+            printf "> *The Clerk's Audit is a ritual of remembering.*\n"
             printf '> *The system pauses to re-read itself, to surface what has settled,*\n'
             printf '> *and to propose governance refinements that keep the soil of the Archive fertile.*\n\n'
             printf -- '---\n\n'

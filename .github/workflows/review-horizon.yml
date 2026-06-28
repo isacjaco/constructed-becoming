@@ -34,7 +34,7 @@ jobs:
                 HORIZON_DATE="$(echo "$line" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}')"
                 HORIZON_EPOCH="$(date -u -d "$HORIZON_DATE" +%s 2>/dev/null || echo 0)"
                 if [ "$HORIZON_EPOCH" -le "$TODAY_EPOCH" ]; then
-                  echo "${filepath}||${HORIZON_DATE}||${line}" >> "$RESULTS_FILE"
+                  echo "${filepath}|${HORIZON_DATE}|${line}" >> "$RESULTS_FILE"
                 fi
               fi
             done < "$filepath"
@@ -78,7 +78,7 @@ jobs:
             printf -- '---\n\n'
             printf '| Document | Review Horizon | Original line |\n'
             printf '|---|---|---|\n'
-            while IFS='||' read -r filepath horizon line; do
+            while IFS='|' read -r filepath horizon line; do
               printf '| `%s` | %s | `%s` |\n' "$filepath" "$horizon" "$line"
             done < /tmp/overdue_horizons.txt
             printf '\n---\n\n'
