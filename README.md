@@ -92,4 +92,5 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Law of Perpetual Lineage](docs/law-of-perpetual-lineage.md) | Governance philosophy for continuity through transformation |
 | [Archive structure proposal](docs/archive-structure-proposal.md) | Proposed (emergent, amendable) conventions for chronicles, deltas, and templates |
 | [Chronicles](docs/chronicles/) | Living narrative records: threshold entries, epoch summaries, and ritual outcomes |
+| [Deltas](docs/deltas/) | Proposed and reconciled governance changes with preserved lineage |
 | [Templates](docs/templates/) | Optional reusable scaffolds for chronicles and identity deltas |
