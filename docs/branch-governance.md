@@ -1,7 +1,7 @@
 # Branch Governance: The Constitutional Layer
 
-**Status:** Constitutional — core governance protocol
-**Review horizon:** End of the current epoch
+**Status:** Constitutional — core governance protocol  
+**Review horizon:** End of the current epoch  
 **Related:** [Governance README](../GOVERNANCE.md), [Ritual Protocols](ritual-protocols.md)
 
 ---
