@@ -93,3 +93,5 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 | [Archive structure proposal](docs/archive-structure-proposal.md) | Proposed (emergent, amendable) conventions for chronicles, deltas, and templates |
 | [Chronicles](docs/chronicles/) | Living narrative records: threshold entries, epoch summaries, and ritual outcomes |
 | [Templates](docs/templates/) | Optional reusable scaffolds for chronicles and identity deltas |
+| [Governance README](docs/governance.md) | The Becoming Engine — five‑phase constitutional description of how the repository governs change, identity, and agency |
+| [Branch governance companion](docs/branch-governance-companion.md) | How the governance README maps onto the branch architecture; the complete constitutional stack |
