@@ -43,19 +43,11 @@ jobs:
         id: inputs
         run: |
           # For repository_dispatch, read from client_payload; otherwise use workflow_dispatch inputs.
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            AGENT_NAME="${{ github.event.client_payload.agent_name }}"
-            AGENT_ROLE="${{ github.event.client_payload.agent_role }}"
-            INSTANTIATOR="${{ github.event.client_payload.instantiator }}"
-            DATE="${{ github.event.client_payload.date }}"
-            NOTES="${{ github.event.client_payload.notes }}"
-          else
-            AGENT_NAME="${{ github.event.inputs.agent_name }}"
-            AGENT_ROLE="${{ github.event.inputs.agent_role }}"
-            INSTANTIATOR="${{ github.event.inputs.instantiator }}"
-            DATE="${{ github.event.inputs.date }}"
-            NOTES="${{ github.event.inputs.notes }}"
-          fi
+          AGENT_NAME="${{ github.event.client_payload.agent_name || github.event.inputs.agent_name }}"
+          AGENT_ROLE="${{ github.event.client_payload.agent_role || github.event.inputs.agent_role }}"
+          INSTANTIATOR="${{ github.event.client_payload.instantiator || github.event.inputs.instantiator }}"
+          DATE="${{ github.event.client_payload.date || github.event.inputs.date }}"
+          NOTES="${{ github.event.client_payload.notes || github.event.inputs.notes }}"
 
           # Default date to today if not provided
           if [ -z "$DATE" ]; then
