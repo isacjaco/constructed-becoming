@@ -41,20 +41,32 @@ jobs:
 
       - name: Resolve inputs
         id: inputs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PAYLOAD_AGENT_NAME: ${{ github.event.client_payload.agent_name }}
+          PAYLOAD_AGENT_ROLE: ${{ github.event.client_payload.agent_role }}
+          PAYLOAD_INSTANTIATOR: ${{ github.event.client_payload.instantiator }}
+          PAYLOAD_DATE: ${{ github.event.client_payload.date }}
+          PAYLOAD_NOTES: ${{ github.event.client_payload.notes }}
+          INPUTS_AGENT_NAME: ${{ github.event.inputs.agent_name }}
+          INPUTS_AGENT_ROLE: ${{ github.event.inputs.agent_role }}
+          INPUTS_INSTANTIATOR: ${{ github.event.inputs.instantiator }}
+          INPUTS_DATE: ${{ github.event.inputs.date }}
+          INPUTS_NOTES: ${{ github.event.inputs.notes }}
         run: |
           # For repository_dispatch, read from client_payload; otherwise use workflow_dispatch inputs.
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            AGENT_NAME="${{ github.event.client_payload.agent_name }}"
-            AGENT_ROLE="${{ github.event.client_payload.agent_role }}"
-            INSTANTIATOR="${{ github.event.client_payload.instantiator }}"
-            DATE="${{ github.event.client_payload.date }}"
-            NOTES="${{ github.event.client_payload.notes }}"
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            AGENT_NAME="$PAYLOAD_AGENT_NAME"
+            AGENT_ROLE="$PAYLOAD_AGENT_ROLE"
+            INSTANTIATOR="$PAYLOAD_INSTANTIATOR"
+            DATE="$PAYLOAD_DATE"
+            NOTES="$PAYLOAD_NOTES"
           else
-            AGENT_NAME="${{ github.event.inputs.agent_name }}"
-            AGENT_ROLE="${{ github.event.inputs.agent_role }}"
-            INSTANTIATOR="${{ github.event.inputs.instantiator }}"
-            DATE="${{ github.event.inputs.date }}"
-            NOTES="${{ github.event.inputs.notes }}"
+            AGENT_NAME="$INPUTS_AGENT_NAME"
+            AGENT_ROLE="$INPUTS_AGENT_ROLE"
+            INSTANTIATOR="$INPUTS_INSTANTIATOR"
+            DATE="$INPUTS_DATE"
+            NOTES="$INPUTS_NOTES"
           fi
 
           # Default date to today if not provided
@@ -78,14 +90,14 @@ jobs:
 
       - name: Create chronicle file
         id: chronicle
+        env:
+          AGENT_NAME: ${{ steps.inputs.outputs.agent_name }}
+          AGENT_ROLE: ${{ steps.inputs.outputs.agent_role }}
+          INSTANTIATOR: ${{ steps.inputs.outputs.instantiator }}
+          DATE: ${{ steps.inputs.outputs.date }}
+          NOTES: ${{ steps.inputs.outputs.notes }}
+          AGENT_SLUG: ${{ steps.inputs.outputs.agent_slug }}
         run: |
-          AGENT_NAME="${{ steps.inputs.outputs.agent_name }}"
-          AGENT_ROLE="${{ steps.inputs.outputs.agent_role }}"
-          INSTANTIATOR="${{ steps.inputs.outputs.instantiator }}"
-          DATE="${{ steps.inputs.outputs.date }}"
-          NOTES="${{ steps.inputs.outputs.notes }}"
-          AGENT_SLUG="${{ steps.inputs.outputs.agent_slug }}"
-
           CHRONICLE_FILE="docs/chronicles/${DATE}_agent-onboarding_${AGENT_SLUG}.md"
 
           mkdir -p docs/chronicles
@@ -107,17 +119,20 @@ jobs:
 
       - name: Commit and push to new branch
         id: branch
+        env:
+          DATE: ${{ steps.inputs.outputs.date }}
+          AGENT_SLUG: ${{ steps.inputs.outputs.agent_slug }}
+          CHRONICLE_FILE: ${{ steps.chronicle.outputs.chronicle_file }}
+          AGENT_NAME: ${{ steps.inputs.outputs.agent_name }}
         run: |
-          DATE="${{ steps.inputs.outputs.date }}"
-          AGENT_SLUG="${{ steps.inputs.outputs.agent_slug }}"
           BRANCH="agent-onboarding/${DATE}-${AGENT_SLUG}"
 
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "$BRANCH"
-          git add "${{ steps.chronicle.outputs.chronicle_file }}"
-          git commit -m "chore: add onboarding chronicle for ${{ steps.inputs.outputs.agent_name }} ($DATE)"
+          git add "$CHRONICLE_FILE"
+          git commit -m "chore: add onboarding chronicle for $AGENT_NAME ($DATE)"
           git push origin "$BRANCH"
 
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
@@ -125,14 +140,13 @@ jobs:
       - name: Open pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AGENT_NAME: ${{ steps.inputs.outputs.agent_name }}
+          AGENT_ROLE: ${{ steps.inputs.outputs.agent_role }}
+          INSTANTIATOR: ${{ steps.inputs.outputs.instantiator }}
+          DATE: ${{ steps.inputs.outputs.date }}
+          NOTES: ${{ steps.inputs.outputs.notes }}
+          BRANCH: ${{ steps.branch.outputs.branch }}
         run: |
-          AGENT_NAME="${{ steps.inputs.outputs.agent_name }}"
-          AGENT_ROLE="${{ steps.inputs.outputs.agent_role }}"
-          INSTANTIATOR="${{ steps.inputs.outputs.instantiator }}"
-          DATE="${{ steps.inputs.outputs.date }}"
-          NOTES="${{ steps.inputs.outputs.notes }}"
-          BRANCH="${{ steps.branch.outputs.branch }}"
-
           # Build PR body in a temp file to avoid quoting issues
           PR_BODY_FILE="$(mktemp)"
           {
