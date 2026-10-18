@@ -28,8 +28,7 @@ jobs:
           COMMIT_MSG="$(git log -1 --pretty=format:'%s' "$COMMIT_SHA")"
           COMMIT_AUTHOR="$(git log -1 --pretty=format:'%an' "$COMMIT_SHA")"
           COMMIT_DATE="$(git log -1 --pretty=format:'%cd' --date=format:'%Y-%m-%d' "$COMMIT_SHA")"
-          CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || true)"
-
+          CHANGED_FILES="$(git show --name-only --pretty=format: -m "$COMMIT_SHA" 2>/dev/null | sed '/^$/d' || true)"
           # Determine current epoch chronicle file (current year-month)
           EPOCH_YEAR_MONTH="$(date -u +%Y-%m)"
           CHRONICLE_FILE="docs/chronicles/epoch-${EPOCH_YEAR_MONTH}.md"
