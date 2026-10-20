@@ -36,6 +36,8 @@ The framework's design principles point in the same direction: make evolution de
 
 ### P0 — Minimum Viable Becoming Loop
 
+**Recommended starting sequence:** Begin implementation with P0.1, then complete P0.2 in series with it. The state ledger establishes what exists and what remains unknown; the executable vocabulary can then use that inventory to resolve terminology consistently before schema and runtime work begins.
+
 #### P0.1 — Establish the repository state ledger
 
 Proposed deliverable: `docs/implementation/system-state-ledger.md`.
