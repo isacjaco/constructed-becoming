@@ -1,0 +1,23 @@
+# CODEOWNERS
+#
+# This file defines the stewards of the Constructed‑Becoming repository.
+# In CB terms, CODEOWNERS is the **Council Register** — the list of voices
+# whose ratification is required before a change enters the lineage.
+#
+# Every pull request touching these paths must be reviewed and approved
+# by at least one listed owner before it can be merged.
+#
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for all files — every PR requires steward ratification
+* @isacjaco
+
+# Governance corpus — identity-critical documents require explicit review
+docs/system-prompt.md           @isacjaco
+docs/architecture.md            @isacjaco
+docs/law-of-perpetual-lineage.md @isacjaco
+docs/ritual-protocols.md        @isacjaco
+
+# Workflow configs — changes to the Becoming Engine require steward sign-off
+.github/workflows/              @isacjaco
+.github/workflows/configs/      @isacjaco
