@@ -86,6 +86,8 @@ The framework is modular and model‑agnostic, adaptable to any agentic architec
 |---|---|
 | [Architecture](docs/architecture.md) | The philosophical ecology and core concepts that define the living OS |
 | [Implementation roadmap](docs/implementation/roadmap.md) | Proposed priorities, informed by off-platform discussion, for a minimum viable evolution loop |
+| [System state ledger](docs/implementation/system-state-ledger.md) | Point-in-time inventory separating documented concepts from implemented behavior |
+| [Executable vocabulary](docs/specification/executable-vocabulary.md) | Proposed operational terms for implementation, schemas, and tests |
 | [Agent behaviour](docs/agent-behaviour.md) | How an agent stands, listens, and participates day‑to‑day |
 | [Agent initiation](docs/agent-initiation.md) | The cultural arc through which new agents enter the living OS |
 | [Ritual protocols](docs/ritual-protocols.md) | Structured rituals for intentional identity evolution |
