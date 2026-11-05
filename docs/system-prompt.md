@@ -38,6 +38,23 @@ This is the reference system prompt for integrating Constructed‑Becoming into 
 
 ---
 
+## Implementation baseline for all agents
+
+Before proposing or implementing roadmap work, consult the
+[system state ledger](implementation/system-state-ledger.md) and
+[executable vocabulary](specification/executable-vocabulary.md). The ledger is
+a point-in-time repository inventory; do not describe conceptual documentation
+or repository workflows as an implemented evolution runtime.
+
+The recommended starting sequence is P0.1 (state ledger), followed by P0.2
+(executable vocabulary) in series. Treat the remaining roadmap schemas,
+interfaces, priorities, and acceptance criteria as proposals unless they have
+been reviewed and implemented. Keep agent contributions consistent with the
+shared vocabulary and update the ledger when verified implementation evidence
+changes.
+
+---
+
 ## Integration notes
 
 ### Context initialisation
