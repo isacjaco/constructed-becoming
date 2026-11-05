@@ -19,7 +19,7 @@ use these terms consistently if the proposal is adopted.
 | **Proposal** | A submitted identity delta awaiting a governance decision. |
 | **Governance decision** | A recorded outcome for exactly one proposal, including its decision-maker or rule, rationale, and status. |
 | **Ratification / acceptance** | A governance decision authorizing a proposal to be committed, subject to validation against its parent revision. |
-| **Rejection** | A governance decision that declines a proposal; it leaves the active identity unchanged and may be chronicled. |
+| **Rejection** | A governance decision that declines a proposal; it leaves the active identity unchanged and must be chronicled before the transaction is considered complete. |
 | **Chronicle** | A durable, human-readable record of a transaction or significant lineage event, with references to its source artefacts. |
 | **Lineage** | The ordered parent relationships among an identity's seed, revisions, deltas, and associated decisions. |
 | **Epoch** | A named period of identity development with explicit entry and exit criteria, if adopted by governance. |
