@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "NODE.schema.json",
+  "title": "Node",
+  "description": "Skeleton. See docs/core-definitions.md.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": true
+}
