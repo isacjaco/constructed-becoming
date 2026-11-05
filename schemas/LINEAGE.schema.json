@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "LINEAGE.schema.json",
+  "title": "Lineage",
+  "description": "Skeleton. See docs/core-definitions.md.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": true
+}
