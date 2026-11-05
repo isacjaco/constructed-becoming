@@ -40,6 +40,19 @@ Identity, Becoming, Lineage, Node, Chain, Chronicle, Evidence, Transition, as de
 
 The schemas are currently empty skeletons, so steps 1–3 are not yet enforceable.
 
+## Acceptance criteria
+
+Reconstruction is ready to pass when an independent reader can:
+
+1. Follow the README links to every referenced document from a clean checkout.
+2. Identify which terms are established and which are proposed without inferring fields the repository does not specify.
+3. Rebuild the documented directory layout and follow the bootstrap and lineage sequences using only repository files.
+4. Trace each transition from its predecessor to its successor, in order, without dangling or duplicated node references.
+5. Locate at least one extant chronicle or other cited artefact as evidence for each transition, and confirm the evidence refers to that transition.
+6. Validate node, chain, and lineage records against the schemas once their fields and relationship rules have been formalised.
+
+The first three criteria can be checked against the current documentation. Criteria 4–6 require a formal record shape and cannot be considered passed until the schema definitions and corresponding validation tests exist. The current schema placeholders intentionally impose no record fields.
+
 ## Known gaps
 
 - Node, Chain, and Evidence are proposed terms with no field-level specification.
