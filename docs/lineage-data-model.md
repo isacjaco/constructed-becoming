@@ -91,6 +91,8 @@ Lineage exists partly through relationships. The network itself becomes historic
 
 ### Proposal
 
+This proposal example captures the proposal while it is under review. The Resolution example below records its later outcome.
+
 ```json
 {
   "proposal_id": "proposal-33",
@@ -112,6 +114,8 @@ Lineage exists partly through relationships. The network itself becomes historic
 ```
 
 ### Resolution
+
+This resolution example captures the outcome after the proposal was accepted.
 
 ```json
 {
@@ -173,6 +177,21 @@ No object may be altered silently. Every modification must generate:
 1. A chronicle
 2. A delta
 3. An attribution record
+
+An Attribution Record identifies who made a change, what object and change it concerns, when it occurred, and the chronicle and delta that record it.
+
+```json
+{
+  "attribution_id": "attribution-01",
+  "actor": "council",
+  "object_type": "agent",
+  "object_id": "agent-001",
+  "change_summary": "accepted archivist duties",
+  "timestamp": "2026-11-05T10:15:00Z",
+  "chronicle_id": "chronicle-0421",
+  "delta_id": "delta-0044"
+}
+```
 
 This ensures perpetual traceability.
 
