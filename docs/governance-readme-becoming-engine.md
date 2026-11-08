@@ -67,7 +67,7 @@ Continuity and archive-coherence automation described here is planned; current w
 - **Review horizon reminders**  
   Planned: scheduled checks would summon re-evaluation of ageing assumptions.
 - **Static publication**  
-  `docs/` deployment to GitHub Pages keeps the Memory Weave readable.
+  The repository is deployed to GitHub Pages, keeping the Memory Weave readable.
 
 ---
 
