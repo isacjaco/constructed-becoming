@@ -58,14 +58,14 @@ Each PR should state:
 
 ## Phase 4 — Automated Narrative Clerk
 
-Automation supports continuity and archive coherence.
+Continuity and archive-coherence automation described here is planned; current workflows handle agent onboarding and static publication.
 
 ### Automated roles
 
 - **Lineage Clerk**  
-  Main-branch automation summarizes and preserves change context.
+  Planned: main-branch automation would summarize and preserve change context.
 - **Review horizon reminders**  
-  Scheduled checks summon re-evaluation of ageing assumptions.
+  Planned: scheduled checks would summon re-evaluation of ageing assumptions.
 - **Static publication**  
   `docs/` deployment to GitHub Pages keeps the Memory Weave readable.
 
