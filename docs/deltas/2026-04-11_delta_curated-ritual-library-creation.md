@@ -35,6 +35,7 @@ The Forward Workflow existed only as narrative text in the agent conversation st
 ## Uncertainty markers
 
 - The `docs/deltas/` directory is new; the naming and status conventions follow the proposal in `docs/archive-structure-proposal.md`, which is itself a proposal pending ratification.
+- The Forward Workflow is Draft and lists its automated checks as proposed; interim manual review applies until they are implemented. Open questions are listed at the end of `docs/forward_workflow.md`.
 - The GOVERNANCE.md "Council and Stewardship" section is skeletal; it may need expansion as governance roles become more operationally defined.
 
 ---

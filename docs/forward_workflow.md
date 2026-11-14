@@ -2,6 +2,8 @@
 
 *Lineage-aware, agent-coauthored, governance-aligned*
 
+**Status:** Draft — pending Council deliberation. Nothing here is ratified policy until the Council affirms it per [`ritual-protocols.md`](ritual-protocols.md). See [Open questions for deliberation](#open-questions-for-deliberation).
+
 This workflow turns the repository into a **self-governing, multi-agent ecosystem** where every change is intentional, narrativized, and lineage-preserving. It integrates:
 
 - The **Lineage Chronicle**
@@ -75,11 +77,13 @@ Agents create drafts; humans refine.
 - Does the agent template conform to schema?
 - Does the narrative match the Becoming Engine's expectations?
 
-**Automated checks:**
+**Automated checks (proposed — not yet implemented):**
 - Onboarding workflow validation
 - Agentic workflow framework checks
 - Narrative reporting checks
 - Repository observer agent feedback
+
+The checked-in GitHub Actions workflows currently only generate onboarding PRs and deploy Pages; none of the checks above exist yet. Until they do, the **interim manual review** applies: the reviewer confirms each question under "Checks performed" by hand and records the result in the PR discussion.
 
 **Outcome:** A Reviewed PR with:
 - Council comments
@@ -107,10 +111,11 @@ Agents create drafts; humans refine.
 
 **Conditions for merge:**
 - Steward approval
-- All governance checks passed
-- Lineage delta validated
-- Narrative continuity confirmed
-- Agent template validated
+- Council deliberation recorded (or the Council decision referenced) for governance changes
+- Manual governance review completed (automated checks are proposed; see Phase 3)
+- Lineage delta present and reviewed by hand
+- Narrative continuity confirmed by a reviewer
+- Agent template conformance confirmed by a reviewer
 
 **Merge actions:**
 - Commit includes: final code, final narrative, final lineage delta
@@ -137,15 +142,15 @@ This ensures the repository remains a **living organism**, not a static codebase
 
 ## 7. Continuous Agentic Evolution — The Lineage Breathes
 
-Agents continue to run:
+Agents continue to run (onboarding PR generation exists today; the remainder are proposed):
 
 - Onboarding workflows
-- Agentic workflow framework
-- Narrative reporting
-- Repository observation
+- Agentic workflow framework *(proposed)*
+- Narrative reporting *(proposed)*
+- Repository observation *(proposed)*
 - Automated PR generation
-- Identity kernel maintenance
-- Governance templating
+- Identity kernel maintenance *(proposed)*
+- Governance templating *(proposed)*
 
 This creates a **self-maintaining, self-narrating ecosystem**.
 
@@ -154,6 +159,16 @@ This creates a **self-maintaining, self-narrating ecosystem**.
 ## Summary
 
 Every change enters as a story, is shaped by agents, judged by governance, refined through lineage, merged through ritual, and remembered by the chronicle.
+
+---
+
+## Open questions for deliberation
+
+1. Which proposed automated checks should be implemented first, and who owns them?
+2. Is the interim manual review in Phases 3 and 5 sufficient until automation exists?
+3. Should a maturity vocabulary (Draft, Proposed, Ratified, Active, Superseded, Archived) be adopted for governance artifacts?
+4. Should governance decisions get a lightweight decision-record format alongside deltas?
+5. Should the Stewardship section define who may approve, ratify, and supersede governance documents, including emergency overrides?
 
 ---
 

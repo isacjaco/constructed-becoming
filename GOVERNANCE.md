@@ -42,7 +42,7 @@ The library is modular by design: no artifact is load-bearing alone. Each docume
 
 - **Human Steward** — final ratification authority; participates as a council member, not a ruler.
 - **Rotating Council Reviewers** — agents or contributors who provide deliberation on proposed changes.
-- **Automated Governance Agents** — workflow-level checks that surface lineage and schema conformance issues before human review.
+- **Automated Governance Agents** *(proposed — not yet implemented)* — workflow-level checks intended to surface lineage and schema conformance issues before human review. Until they exist, reviewers perform these checks manually, as described in the Forward Workflow.
 
 ---
 
