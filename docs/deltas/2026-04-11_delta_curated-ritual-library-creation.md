@@ -1,6 +1,6 @@
 # Delta: Curated Ritual Library — Creation
 
-**Status:** Ratified  
+**Status:** Draft — pending Council deliberation  
 **Date:** 2026-04-11  
 **Proposed by:** Copilot coding agent (agent session, 2026-04-11)  
 **Prompted by:** Steward instruction to normalize and organize governance artifacts into a curated ritual library
