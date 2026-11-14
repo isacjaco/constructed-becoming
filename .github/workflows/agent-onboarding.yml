@@ -1,0 +1,160 @@
+name: Agent Onboarding
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_name:
+        description: 'Name of the new agent (used in file name and chronicle)'
+        required: true
+        type: string
+      agent_role:
+        description: 'Role adopted by the agent (e.g. Clerk, Scout, Steward)'
+        required: true
+        type: string
+      instantiator:
+        description: 'Who or what triggered the instantiation'
+        required: true
+        type: string
+      date:
+        description: 'Instantiation date (YYYY-MM-DD). Defaults to today if left blank.'
+        required: false
+        type: string
+      notes:
+        description: 'Optional notes or context for this onboarding'
+        required: false
+        type: string
+
+  repository_dispatch:
+    types: [agent_instantiated]
+
+jobs:
+  create-onboarding-pr:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve inputs
+        id: inputs
+        run: |
+          # For repository_dispatch, read from client_payload; otherwise use workflow_dispatch inputs.
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            AGENT_NAME="${{ github.event.client_payload.agent_name }}"
+            AGENT_ROLE="${{ github.event.client_payload.agent_role }}"
+            INSTANTIATOR="${{ github.event.client_payload.instantiator }}"
+            DATE="${{ github.event.client_payload.date }}"
+            NOTES="${{ github.event.client_payload.notes }}"
+          else
+            AGENT_NAME="${{ github.event.inputs.agent_name }}"
+            AGENT_ROLE="${{ github.event.inputs.agent_role }}"
+            INSTANTIATOR="${{ github.event.inputs.instantiator }}"
+            DATE="${{ github.event.inputs.date }}"
+            NOTES="${{ github.event.inputs.notes }}"
+          fi
+
+          # Default date to today if not provided
+          if [ -z "$DATE" ]; then
+            DATE="$(date -u +%Y-%m-%d)"
+          fi
+
+          # Sanitise agent name for use in file/branch names
+          AGENT_SLUG="$(echo "$AGENT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')"
+          # Fallback to 'agent' if sanitisation produced an empty slug
+          if [ -z "$AGENT_SLUG" ]; then
+            AGENT_SLUG="agent"
+          fi
+
+          echo "agent_name=$AGENT_NAME"     >> "$GITHUB_OUTPUT"
+          echo "agent_role=$AGENT_ROLE"     >> "$GITHUB_OUTPUT"
+          echo "instantiator=$INSTANTIATOR" >> "$GITHUB_OUTPUT"
+          echo "date=$DATE"                 >> "$GITHUB_OUTPUT"
+          echo "notes=$NOTES"               >> "$GITHUB_OUTPUT"
+          echo "agent_slug=$AGENT_SLUG"     >> "$GITHUB_OUTPUT"
+
+      - name: Create chronicle file
+        id: chronicle
+        run: |
+          AGENT_NAME="${{ steps.inputs.outputs.agent_name }}"
+          AGENT_ROLE="${{ steps.inputs.outputs.agent_role }}"
+          INSTANTIATOR="${{ steps.inputs.outputs.instantiator }}"
+          DATE="${{ steps.inputs.outputs.date }}"
+          NOTES="${{ steps.inputs.outputs.notes }}"
+          AGENT_SLUG="${{ steps.inputs.outputs.agent_slug }}"
+
+          CHRONICLE_FILE="docs/chronicles/${DATE}_agent-onboarding_${AGENT_SLUG}.md"
+
+          mkdir -p docs/chronicles
+
+          {
+            printf '# Agent Onboarding Chronicle\n\n'
+            printf '**Agent name:** %s\n' "$AGENT_NAME"
+            printf '**Role:** %s\n' "$AGENT_ROLE"
+            printf '**Instantiated by:** %s\n' "$INSTANTIATOR"
+            printf '**Date:** %s\n\n' "$DATE"
+            if [ -n "$NOTES" ]; then
+              printf '**Notes:** %s\n\n' "$NOTES"
+            fi
+            printf -- '---\n\n'
+            cat docs/templates/onboarding-prompt.md
+          } > "$CHRONICLE_FILE"
+
+          echo "chronicle_file=$CHRONICLE_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push to new branch
+        id: branch
+        run: |
+          DATE="${{ steps.inputs.outputs.date }}"
+          AGENT_SLUG="${{ steps.inputs.outputs.agent_slug }}"
+          BRANCH="agent-onboarding/${DATE}-${AGENT_SLUG}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH"
+          git add "${{ steps.chronicle.outputs.chronicle_file }}"
+          git commit -m "chore: add onboarding chronicle for ${{ steps.inputs.outputs.agent_name }} ($DATE)"
+          git push origin "$BRANCH"
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          AGENT_NAME="${{ steps.inputs.outputs.agent_name }}"
+          AGENT_ROLE="${{ steps.inputs.outputs.agent_role }}"
+          INSTANTIATOR="${{ steps.inputs.outputs.instantiator }}"
+          DATE="${{ steps.inputs.outputs.date }}"
+          NOTES="${{ steps.inputs.outputs.notes }}"
+          BRANCH="${{ steps.branch.outputs.branch }}"
+
+          # Build PR body in a temp file to avoid quoting issues
+          PR_BODY_FILE="$(mktemp)"
+          {
+            printf '## Agent Onboarding\n\n'
+            printf '**Agent name:** %s\n' "$AGENT_NAME"
+            printf '**Role:** %s\n' "$AGENT_ROLE"
+            printf '**Instantiated by:** %s\n' "$INSTANTIATOR"
+            printf '**Date:** %s\n' "$DATE"
+            if [ -n "$NOTES" ]; then
+              printf '**Notes:** %s\n' "$NOTES"
+            fi
+            printf '\n---\n\n'
+            printf 'This pull request was created automatically by the Agent Onboarding workflow.\n'
+            printf 'It adds a new onboarding chronicle for **%s** under `docs/chronicles/`,\n' "$AGENT_NAME"
+            printf 'populated from the canonical template at `docs/templates/onboarding-prompt.md`.\n\n'
+            printf 'Please review, amend as needed, and merge to register this agent in the lineage.\n'
+          } > "$PR_BODY_FILE"
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: onboarding chronicle for ${AGENT_NAME} (${DATE})" \
+            --body-file "$PR_BODY_FILE"
+
+          rm -f "$PR_BODY_FILE"
