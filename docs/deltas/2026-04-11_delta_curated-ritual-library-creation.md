@@ -40,4 +40,4 @@ The Forward Workflow existed only as narrative text in the agent conversation st
 ---
 
 *Recorded by: Copilot coding agent, 2026-04-11*  
-*Part of the [Curated Ritual Library](../GOVERNANCE.md#governance-artifacts)*
+*Part of the [Curated Ritual Library](../../GOVERNANCE.md#governance-artifacts)*
