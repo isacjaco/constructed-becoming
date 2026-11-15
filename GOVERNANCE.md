@@ -48,7 +48,7 @@ The library is modular by design: no artifact is load-bearing alone. Each docume
 
 ## Operational Workflow
 
-The living OS follows the **Forward Workflow** for all changes: intake, drafting, governance review, refinement, merge ritual, chronicle update, and continuous agentic evolution.
+The **Forward Workflow** is a draft proposal, pending Council deliberation, for a seven-phase change process: intake, drafting, governance review, refinement, merge ritual, chronicle update, and continuous agentic evolution. It is not yet ratified policy.
 
 Full details: [`docs/forward_workflow.md`](docs/forward_workflow.md)
 
