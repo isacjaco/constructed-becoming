@@ -60,7 +60,7 @@ This table is itself part of the Ledger's discipline: absence recorded as struct
 
 - When a new lineage document is filed, append one row. One line, honest tension included.
 - When a proposed artifact is ratified or retired, move its becoming; never delete its row — append the transition.
-- When an unbuilt thing gets built, carry its row downward into the corpus index with its lineage intact.
+- When an unbuilt thing gets built, retain its absence row and append a linked transition row to the corpus index with its lineage intact.
 - If this practice feels like ceremony for ceremony's sake, the Ledger is wrong for its moment: retire it by the same ritual that adopted it (see 2026-11-23 chronicle, closing note).
 
 ---
